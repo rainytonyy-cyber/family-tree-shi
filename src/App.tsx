@@ -21,7 +21,8 @@ function App() {
   const [showPersonCard, setShowPersonCard] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showSpouses, setShowSpouses] = useState(true);
-  const [showFemaleMembers, setShowFemaleMembers] = useState(true);
+  const [showDaughters, setShowDaughters] = useState(true);
+  const [showSonsInLaw, setShowSonsInLaw] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -61,8 +62,8 @@ function App() {
   );
 
   const treeRoots = useMemo(
-    () => buildTree(persons, showSpouses, showFemaleMembers),
-    [persons, showSpouses, showFemaleMembers]
+    () => buildTree(persons, showSpouses, showDaughters, showSonsInLaw),
+    [persons, showSpouses, showDaughters, showSonsInLaw]
   );
 
   const stats = useMemo(() => {
@@ -101,7 +102,13 @@ function App() {
             break;
           case 'd':
             e.preventDefault();
-            setShowFemaleMembers(prev => !prev);
+            setShowDaughters(prev => !prev);
+            break;
+          case 'l':
+            e.preventDefault();
+            if (showDaughters) {
+              setShowSonsInLaw(prev => !prev);
+            }
             break;
         }
       }
@@ -113,7 +120,7 @@ function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [showDaughters]);
 
   const handleSearch = useCallback((filters: SearchFilters) => {
     const results = searchPersons(persons, filters);
@@ -250,18 +257,39 @@ function App() {
           </button>
 
           <button
-            onClick={() => setShowFemaleMembers(!showFemaleMembers)}
+            onClick={() => {
+              setShowDaughters(!showDaughters);
+              if (showDaughters) {
+                setShowSonsInLaw(false);
+              }
+            }}
             className={`
               btn-ink px-4 py-2 rounded-lg text-sm font-medium 
               transition-all duration-300
-              ${showFemaleMembers
+              ${showDaughters
                 ? 'bg-purple-500 text-white shadow-md shadow-purple-500/20'
                 : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
               }
             `}
           >
-            {showFemaleMembers ? '隐藏女性' : '显示女性'}
+            {showDaughters ? '隐藏女儿' : '显示女儿'}
           </button>
+
+          {showDaughters && (
+            <button
+              onClick={() => setShowSonsInLaw(!showSonsInLaw)}
+              className={`
+                btn-ink px-4 py-2 rounded-lg text-sm font-medium 
+                transition-all duration-300
+                ${showSonsInLaw
+                  ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
+                  : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+                }
+              `}
+            >
+              {showSonsInLaw ? '隐藏女婿' : '显示女婿'}
+            </button>
+          )}
           
           <button
             onClick={() => setShowStats(!showStats)}
@@ -317,7 +345,8 @@ function App() {
             highlightedIds={highlightedIds}
             onSelectPerson={handleSelectPerson}
             showSpouses={showSpouses}
-            showFemaleMembers={showFemaleMembers}
+            showDaughters={showDaughters}
+            showSonsInLaw={showSonsInLaw}
           />
         )}
 
@@ -430,7 +459,13 @@ function App() {
           <span className="text-ink-300">|</span>
           <span>配偶: {showSpouses ? '开' : '关'}</span>
           <span className="text-ink-300">|</span>
-          <span>女性: {showFemaleMembers ? '开' : '关'}</span>
+          <span>女儿: {showDaughters ? '开' : '关'}</span>
+          {showDaughters && (
+            <>
+              <span className="text-ink-300">|</span>
+              <span>女婿: {showSonsInLaw ? '开' : '关'}</span>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-2 text-ink-400">
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs">Ctrl+F</kbd>
@@ -440,7 +475,9 @@ function App() {
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+S</kbd>
           <span>配偶</span>
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+D</kbd>
-          <span>女性</span>
+          <span>女儿</span>
+          <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+L</kbd>
+          <span>女婿</span>
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+I</kbd>
           <span>统计</span>
         </div>

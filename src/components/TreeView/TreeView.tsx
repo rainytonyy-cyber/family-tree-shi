@@ -9,10 +9,11 @@ interface TreeViewProps {
   highlightedIds: string[];
   onSelectPerson: (id: string) => void;
   showSpouses: boolean;
-  showFemaleMembers: boolean;
+  showDaughters: boolean;
+  showSonsInLaw: boolean;
 }
 
-export function TreeView({ roots, direction, selectedId, highlightedIds, onSelectPerson, showSpouses, showFemaleMembers }: TreeViewProps) {
+export function TreeView({ roots, direction, selectedId, highlightedIds, onSelectPerson, showSpouses, showDaughters, showSonsInLaw }: TreeViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewState, setViewState] = useState<ViewState>({
@@ -21,7 +22,8 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
     panY: 0,
     direction,
     showSpouses,
-    showFemaleMembers
+    showDaughters,
+    showSonsInLaw
   });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -32,8 +34,8 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
   void bounds;
 
   useEffect(() => {
-    setViewState(prev => ({ ...prev, direction, showSpouses, showFemaleMembers }));
-  }, [direction, showSpouses, showFemaleMembers]);
+    setViewState(prev => ({ ...prev, direction, showSpouses, showDaughters, showSonsInLaw }));
+  }, [direction, showSpouses, showDaughters, showSonsInLaw]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -430,7 +432,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
       }
 
       // 女儿节点（如果显示）
-      if (showFemaleMembers && node.daughters && node.daughters.length > 0) {
+      if (showDaughters && node.daughters && node.daughters.length > 0) {
         node.daughters.forEach((daughter, index) => {
           const daughterIsSelected = daughter.id === selectedId;
           const daughterIsHighlighted = highlightedIds.includes(daughter.id);
@@ -559,6 +561,137 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
         });
       }
 
+      // 女婿节点（如果显示）
+      if (showDaughters && showSonsInLaw && node.sonsInLaw && node.sonsInLaw.length > 0) {
+        node.sonsInLaw.forEach((sonInLaw, index) => {
+          const sonInLawIsSelected = sonInLaw.id === selectedId;
+          const sonInLawIsHighlighted = highlightedIds.includes(sonInLaw.id);
+          
+          let sonInLawFillColor = '#ffffff';
+          let sonInLawStrokeColor = '#a5b4fc';
+          let sonInLawTextColor = '#2d2d44';
+          let sonInLawSubtextColor = '#6b6b8a';
+
+          if (sonInLawIsSelected) {
+            sonInLawFillColor = '#2d8a6e';
+            sonInLawStrokeColor = '#3a9d80';
+            sonInLawTextColor = '#faf8f5';
+            sonInLawSubtextColor = '#d5d5e5';
+          } else if (sonInLawIsHighlighted) {
+            sonInLawFillColor = '#fffbeb';
+            sonInLawStrokeColor = '#c9a84c';
+            sonInLawTextColor = '#1a1a2e';
+            sonInLawSubtextColor = '#6b6b8a';
+          } else {
+            sonInLawFillColor = '#eef2ff';
+            sonInLawStrokeColor = '#a5b4fc';
+            sonInLawTextColor = '#2d2d44';
+            sonInLawSubtextColor = '#6b6b8a';
+          }
+
+          const sonInLawShadowFilter = sonInLawIsSelected 
+            ? 'drop-shadow(0 4px 12px rgba(26, 26, 46, 0.15))' 
+            : 'drop-shadow(0 2px 4px rgba(26, 26, 46, 0.05))';
+
+          // 计算女婿节点位置（在女儿节点右侧）
+          const daughtersCount = node.daughters?.length || 0;
+          const sonInLawX = node.x + (daughtersCount + index) * (SPOUSE_NODE_WIDTH + 15);
+          const sonInLawY = node.y + NODE_HEIGHT + 15;
+
+          nodes.push(
+            <g
+              key={sonInLaw.id}
+              transform={`translate(${sonInLawX}, ${sonInLawY})`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectPerson(sonInLaw.id);
+              }}
+              className="node-hover"
+              style={{ cursor: 'pointer', filter: sonInLawShadowFilter }}
+            >
+              {/* 女婿节点背景 */}
+              <rect
+                width={SPOUSE_NODE_WIDTH}
+                height={SPOUSE_NODE_HEIGHT - 10}
+                rx="10"
+                fill={sonInLawFillColor}
+                stroke={sonInLawStrokeColor}
+                strokeWidth={sonInLawIsSelected ? 2.5 : 1.5}
+                className="transition-all duration-200"
+              />
+              
+              {/* 性别指示条 */}
+              <rect
+                x="0"
+                y="8"
+                width="3"
+                height={SPOUSE_NODE_HEIGHT - 26}
+                rx="1.5"
+                fill="#4a90d9"
+                opacity={sonInLawIsSelected ? 0.9 : 0.6}
+              />
+
+              {/* 女婿标签 */}
+              <rect
+                x="8"
+                y="4"
+                width="28"
+                height="14"
+                rx="7"
+                fill="rgba(99, 102, 241, 0.2)"
+              />
+              <text
+                x="22"
+                y="14"
+                textAnchor="middle"
+                fill="#6366f1"
+                fontSize="8"
+                fontWeight="600"
+              >
+                女婿
+              </text>
+
+              {/* 女婿姓名 */}
+              <text
+                x={SPOUSE_NODE_WIDTH / 2 + 5}
+                y={36}
+                textAnchor="middle"
+                fill={sonInLawTextColor}
+                fontSize="13"
+                fontWeight="500"
+                style={{ fontFamily: "'Noto Serif SC', serif" }}
+              >
+                {sonInLaw.name}
+              </text>
+              
+              {/* 女婿信息 */}
+              <text
+                x={SPOUSE_NODE_WIDTH / 2 + 5}
+                y={50}
+                textAnchor="middle"
+                fill={sonInLawSubtextColor}
+                fontSize="10"
+                style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+              >
+                {sonInLaw.birthDate ? `${sonInLaw.birthDate}` : ''}
+              </text>
+
+              {/* 选中指示器 */}
+              {sonInLawIsSelected && (
+                <circle
+                  cx={SPOUSE_NODE_WIDTH - 6}
+                  cy="6"
+                  r="3"
+                  fill="#c9a84c"
+                  stroke="#ffffff"
+                  strokeWidth="1.5"
+                />
+              )}
+            </g>
+          );
+        });
+      }
+
       node.children.forEach(child => visit(child, depth + 1));
     };
 
@@ -616,7 +749,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           −
         </button>
         <button
-          onClick={() => setViewState({ zoom: 1, panX: 0, panY: 0, direction, showSpouses, showFemaleMembers })}
+          onClick={() => setViewState({ zoom: 1, panX: 0, panY: 0, direction, showSpouses, showDaughters, showSonsInLaw })}
           className="
             w-10 h-10 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-ink-900/10
             border border-ink-200 text-ink-500 text-xs

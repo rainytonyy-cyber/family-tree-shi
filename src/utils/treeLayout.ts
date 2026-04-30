@@ -8,7 +8,7 @@ const HORIZONTAL_GAP = 50;
 const VERTICAL_GAP = 80;
 const GENERATION_GAP = 120;
 
-export function buildTree(persons: Person[], showSpouses: boolean = true, showFemaleMembers: boolean = true): TreeNode[] {
+export function buildTree(persons: Person[], showSpouses: boolean = true, showDaughters: boolean = true, showSonsInLaw: boolean = true): TreeNode[] {
   const personMap = new Map<string, Person>();
   persons.forEach(p => personMap.set(p.id, p));
 
@@ -22,16 +22,6 @@ export function buildTree(persons: Person[], showSpouses: boolean = true, showFe
         spouseMap.set(p.id, spouse);
         spouseMap.set(spouse.id, p);
       }
-    }
-  });
-
-  // 只以男性作为父系分支 - 找出所有有后代的男性或没有parentId的男性
-  const maleDescendants = new Set<string>();
-  
-  // 标记所有有后代的人
-  persons.forEach(p => {
-    if (p.parentId) {
-      maleDescendants.add(p.parentId);
     }
   });
 
@@ -58,9 +48,17 @@ export function buildTree(persons: Person[], showSpouses: boolean = true, showFe
     // 找出该人的配偶（通过双向映射）
     const spouse = showSpouses ? spouseMap.get(person.id) : undefined;
 
-    // 找出该人的女性子代（女儿）
-    const daughters = showFemaleMembers 
+    // 找出该人的女儿
+    const daughters = showDaughters 
       ? persons.filter(p => p.parentId === person.id && p.gender === 'female')
+      : [];
+
+    // 找出女婿（女儿的配偶）
+    const sonsInLaw = (showDaughters && showSonsInLaw)
+      ? daughters.flatMap(daughter => {
+          const sonInLaw = spouseMap.get(daughter.id);
+          return sonInLaw ? [sonInLaw] : [];
+        })
       : [];
 
     // 找出该人的男性子代作为分支
@@ -78,6 +76,7 @@ export function buildTree(persons: Person[], showSpouses: boolean = true, showFe
       person, 
       spouse,
       daughters,
+      sonsInLaw,
       children, 
       x: 0, 
       y: 0,
