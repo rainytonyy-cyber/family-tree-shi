@@ -31,7 +31,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
-  const laidOutRoots = layoutTree([...roots], direction);
+  const laidOutRoots = layoutTree([...roots], direction, showDaughters, showSonsInLaw, showCousins);
   const bounds = getTreeBounds(laidOutRoots);
   const padding = 150;
   void bounds;

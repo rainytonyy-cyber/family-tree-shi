@@ -5,8 +5,27 @@ const NODE_HEIGHT = 90;
 const SPOUSE_NODE_WIDTH = 140;
 const SPOUSE_NODE_HEIGHT = 70;
 const HORIZONTAL_GAP = 50;
-const VERTICAL_GAP = 80;
-const GENERATION_GAP = 120;
+
+// 基础间距
+const BASE_VERTICAL_GAP = 60;
+const BASE_GENERATION_GAP = 100;
+
+// 动态间距计算：根据显示选项增加间距
+function getVerticalGap(showDaughters: boolean, showSonsInLaw: boolean, showCousins: boolean): number {
+  let gap = BASE_VERTICAL_GAP;
+  if (showDaughters) gap += 30;      // 显示女儿时增加间距
+  if (showSonsInLaw) gap += 20;      // 显示女婿时再增加
+  if (showCousins) gap += 40;        // 显示表亲时再增加
+  return gap;
+}
+
+function getGenerationGap(showDaughters: boolean, showSonsInLaw: boolean, showCousins: boolean): number {
+  let gap = BASE_GENERATION_GAP;
+  if (showDaughters) gap += 40;      // 显示女儿时增加辈分间距
+  if (showSonsInLaw) gap += 30;      // 显示女婿时再增加
+  if (showCousins) gap += 50;        // 显示表亲时再增加
+  return gap;
+}
 
 export function buildTree(
   persons: Person[], 
@@ -34,9 +53,6 @@ export function buildTree(
   // 按辈分排序，取辈分最低的作为唯一根节点
   potentialRoots.sort((a, b) => (a.generation || 1) - (b.generation || 1));
   const roots: Person[] = potentialRoots.length > 0 ? [potentialRoots[0]] : [];
-
-  // 按辈分排序
-  roots.sort((a, b) => (a.generation || 1) - (b.generation || 1));
 
   function buildNode(person: Person): TreeNode {
     // 找出该人的所有配偶（包括儿子的配偶，受showSpouses控制）
@@ -109,7 +125,12 @@ function getSubtreeWidth(node: TreeNode): number {
   return Math.max(nodeWidth, childrenWidth);
 }
 
-function layoutHorizontal(node: TreeNode, x: number, y: number): void {
+function layoutHorizontal(
+  node: TreeNode, 
+  x: number, 
+  y: number, 
+  verticalGap: number
+): void {
   node.x = x;
   node.y = y;
 
@@ -124,7 +145,7 @@ function layoutHorizontal(node: TreeNode, x: number, y: number): void {
 
   node.children.forEach(child => {
     const childWidth = getSubtreeWidth(child);
-    layoutHorizontal(child, childX + childWidth / 2, y + NODE_HEIGHT + VERTICAL_GAP + (node.generation || 1) * 10);
+    layoutHorizontal(child, childX + childWidth / 2, y + NODE_HEIGHT + verticalGap, verticalGap);
     childX += childWidth + HORIZONTAL_GAP;
   });
 }
@@ -140,11 +161,17 @@ function layoutVertical(node: TreeNode, x: number, y: number): void {
     : 0;
 
   node.children.forEach((child, index) => {
-    layoutVertical(child, x + NODE_WIDTH + HORIZONTAL_GAP + spouseWidth, y + index * (NODE_HEIGHT + VERTICAL_GAP));
+    layoutVertical(child, x + NODE_WIDTH + HORIZONTAL_GAP + spouseWidth, y + index * (NODE_HEIGHT + BASE_VERTICAL_GAP));
   });
 }
 
-export function layoutTree(roots: TreeNode[], direction: TreeDirection): TreeNode[] {
+export function layoutTree(
+  roots: TreeNode[], 
+  direction: TreeDirection,
+  showDaughters: boolean = true,
+  showSonsInLaw: boolean = true,
+  showCousins: boolean = false
+): TreeNode[] {
   const generationGroups = new Map<number, TreeNode[]>();
   
   roots.forEach(root => {
@@ -155,6 +182,10 @@ export function layoutTree(roots: TreeNode[], direction: TreeDirection): TreeNod
     generationGroups.get(gen)!.push(root);
   });
 
+  // 计算动态间距
+  const verticalGap = getVerticalGap(showDaughters, showSonsInLaw, showCousins);
+  const generationGap = getGenerationGap(showDaughters, showSonsInLaw, showCousins);
+
   let currentY = 0;
   const sortedGenerations = Array.from(generationGroups.keys()).sort((a, b) => a - b);
   
@@ -164,16 +195,16 @@ export function layoutTree(roots: TreeNode[], direction: TreeDirection): TreeNod
     
     nodes.forEach(root => {
       if (direction === 'horizontal') {
-        layoutHorizontal(root, currentX, currentY);
+        layoutHorizontal(root, currentX, currentY, verticalGap);
         currentX += getSubtreeWidth(root) + HORIZONTAL_GAP * 2;
       } else {
         layoutVertical(root, currentX, currentY);
-        currentY += (NODE_HEIGHT + VERTICAL_GAP) * 3;
+        currentY += (NODE_HEIGHT + BASE_VERTICAL_GAP) * 3;
       }
     });
     
     if (direction === 'horizontal') {
-      currentY += GENERATION_GAP;
+      currentY += generationGap;
     }
   });
 
