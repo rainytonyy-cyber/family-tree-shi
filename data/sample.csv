@@ -1,0 +1,7 @@
+id,name,gender,birthDate,deathDate,bloodType,nationality,education,occupation,address,photoPath,parentId,spouseId,notes
+1,张三,male,1950-01-15,,,A,汉族,,工程师,,,
+2,李四,female,1952-03-20,,,B,汉族,,教师,,2,1,张三配偶
+3,张明,male,1975-06-10,,,A,汉族,,医生,,1,,张三长子
+4,王芳,female,1978-09-25,,,O,汉族,,律师,,1,3,张明配偶
+5,张小明,male,2000-12-05,,,A,汉族,,学生,,3,,张明长子
+6,张小红,female,2003-04-18,,,B,汉族,,学生,,3,,张明长女
