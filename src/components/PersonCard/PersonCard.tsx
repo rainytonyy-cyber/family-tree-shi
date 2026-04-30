@@ -11,8 +11,20 @@ interface PersonCardProps {
 export function PersonCard({ person, allPersons, onClose, onEdit, onDelete }: PersonCardProps) {
   if (!person) return null;
 
+  // 构建配偶关系映射（双向）
+  const spouseMap = new Map<string, Person>();
+  allPersons.forEach(p => {
+    if (p.spouseId) {
+      const spouse = allPersons.find(s => s.id === p.spouseId);
+      if (spouse) {
+        spouseMap.set(p.id, spouse);
+        spouseMap.set(spouse.id, p);
+      }
+    }
+  });
+
   const parent = person.parentId ? allPersons.find(p => p.id === person.parentId) : undefined;
-  const spouse = person.spouseId ? allPersons.find(p => p.id === person.spouseId) : undefined;
+  const spouse = spouseMap.get(person.id);
   const children = allPersons.filter(p => p.parentId === person.id);
   const isMale = person.gender === 'male';
 
