@@ -3,7 +3,7 @@ import type { Person } from '../types';
 const CSV_HEADERS: (keyof Person)[] = [
   'id', 'name', 'gender', 'birthDate', 'deathDate', 'bloodType',
   'nationality', 'education', 'occupation', 'address', 'photoPath',
-  'parentId', 'spouseId', 'generation', 'notes'
+  'fatherId', 'motherId', 'spouseIds', 'generation', 'notes'
 ];
 
 function escapeCSV(value: string | undefined): string {
@@ -61,18 +61,32 @@ export function parseCSV(csvText: string): Person[] {
     const values = parseCSVLine(lines[i]);
     if (values.length === 0 || (values.length === 1 && values[0] === '')) continue;
 
-    const person: Record<string, string> = {};
+    const record: Record<string, string> = {};
     headers.forEach((header, index) => {
-      person[header] = values[index] || '';
+      record[header] = values[index] || '';
     });
 
-    // 转换generation为数字
-    const parsed = person as unknown as Person;
-    if (parsed.generation) {
-      (parsed as any).generation = parseInt(parsed.generation as any, 10) || 1;
-    }
+    // 解析为Person对象
+    const person: Person = {
+      id: record.id || '',
+      name: record.name || '',
+      gender: (record.gender as Person['gender']) || 'other',
+      birthDate: record.birthDate || undefined,
+      deathDate: record.deathDate || undefined,
+      bloodType: record.bloodType || undefined,
+      nationality: record.nationality || undefined,
+      education: record.education || undefined,
+      occupation: record.occupation || undefined,
+      address: record.address || undefined,
+      photoPath: record.photoPath || undefined,
+      fatherId: record.fatherId || undefined,
+      motherId: record.motherId || undefined,
+      spouseIds: record.spouseIds ? record.spouseIds.split(';').filter(Boolean) : [],
+      generation: record.generation ? parseInt(record.generation, 10) : undefined,
+      notes: record.notes || undefined,
+    };
 
-    persons.push(parsed);
+    persons.push(person);
   }
 
   return persons;
@@ -81,7 +95,13 @@ export function parseCSV(csvText: string): Person[] {
 export function generateCSV(persons: Person[]): string {
   const headerLine = CSV_HEADERS.join(',');
   const dataLines = persons.map(person =>
-    CSV_HEADERS.map(header => escapeCSV(String(person[header] || ''))).join(',')
+    CSV_HEADERS.map(header => {
+      const value = person[header];
+      if (header === 'spouseIds' && Array.isArray(value)) {
+        return escapeCSV(value.join(';'));
+      }
+      return escapeCSV(String(value || ''));
+    }).join(',')
   );
 
   return [headerLine, ...dataLines].join('\n');

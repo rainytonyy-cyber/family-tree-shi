@@ -12,31 +12,14 @@ export function buildTree(persons: Person[], showSpouses: boolean = true, showDa
   const personMap = new Map<string, Person>();
   persons.forEach(p => personMap.set(p.id, p));
 
-  // 构建配偶关系映射（双向）
-  const spouseMap = new Map<string, Person>();
-  persons.forEach(p => {
-    if (p.spouseId) {
-      const spouse = personMap.get(p.spouseId);
-      if (spouse) {
-        // 双向映射
-        spouseMap.set(p.id, spouse);
-        spouseMap.set(spouse.id, p);
-      }
-    }
-  });
-
-  // 找出根节点 - 只有没有parentId的史姓血缘男性才能作为根节点
-  // 排除配偶（有spouseId的人）作为根节点
+  // 找出根节点 - 没有父亲也没有母亲的人（或者父母都不在数据中）
   const roots: Person[] = [];
   persons.forEach(p => {
-    // 条件1: 没有parentId
-    // 条件2: 是男性
-    // 条件3: 不是配偶（没有spouseId，或者是史姓血缘成员）
-    const hasNoParent = !p.parentId || !personMap.has(p.parentId);
-    const isMale = p.gender === 'male';
-    const isNotSpouse = !p.spouseId; // 配偶有spouseId，不应该作为根节点
+    const hasFather = p.fatherId && personMap.has(p.fatherId);
+    const hasMother = p.motherId && personMap.has(p.motherId);
     
-    if (hasNoParent && isMale && isNotSpouse) {
+    // 如果没有父母在数据中，且是男性，则作为根节点
+    if (!hasFather && !hasMother && p.gender === 'male') {
       roots.push(p);
     }
   });
@@ -45,27 +28,31 @@ export function buildTree(persons: Person[], showSpouses: boolean = true, showDa
   roots.sort((a, b) => (a.generation || 1) - (b.generation || 1));
 
   function buildNode(person: Person): TreeNode {
-    // 找出该人的配偶（通过双向映射）
-    const spouse = showSpouses ? spouseMap.get(person.id) : undefined;
+    // 找出该人的所有配偶
+    const spouses = showSpouses 
+      ? (person.spouseIds || [])
+          .map(id => personMap.get(id))
+          .filter((p): p is Person => p !== undefined)
+      : [];
 
-    // 找出该人的女儿
+    // 找出该人的女儿（以该人为父亲）
     const daughters = showDaughters 
-      ? persons.filter(p => p.parentId === person.id && p.gender === 'female')
+      ? persons.filter(p => p.fatherId === person.id && p.gender === 'female')
       : [];
 
     // 找出女婿（女儿的配偶）
     const sonsInLaw = (showDaughters && showSonsInLaw)
-      ? daughters.flatMap(daughter => {
-          const sonInLaw = spouseMap.get(daughter.id);
-          return sonInLaw ? [sonInLaw] : [];
-        })
+      ? daughters.flatMap(daughter => 
+          (daughter.spouseIds || [])
+            .map(id => personMap.get(id))
+            .filter((p): p is Person => p !== undefined)
+        )
       : [];
 
-    // 找出该人的男性子代作为分支
+    // 找出该人的儿子作为分支（以该人为父亲）
     const children = persons
-      .filter(p => p.parentId === person.id && p.gender === 'male')
+      .filter(p => p.fatherId === person.id && p.gender === 'male')
       .sort((a, b) => {
-        // 按出生日期排序
         const dateA = a.birthDate || '';
         const dateB = b.birthDate || '';
         return dateA.localeCompare(dateB);
@@ -74,7 +61,7 @@ export function buildTree(persons: Person[], showSpouses: boolean = true, showDa
 
     return { 
       person, 
-      spouse,
+      spouses,
       daughters,
       sonsInLaw,
       children, 
@@ -88,8 +75,12 @@ export function buildTree(persons: Person[], showSpouses: boolean = true, showDa
 }
 
 function getSubtreeWidth(node: TreeNode): number {
+  const spouseWidth = node.spouses.length > 0 
+    ? node.spouses.length * (SPOUSE_NODE_WIDTH + 10) 
+    : 0;
+
   if (node.children.length === 0) {
-    return NODE_WIDTH + (node.spouse ? SPOUSE_NODE_WIDTH + 20 : 0);
+    return NODE_WIDTH + spouseWidth;
   }
 
   const childrenWidth = node.children.reduce(
@@ -97,7 +88,7 @@ function getSubtreeWidth(node: TreeNode): number {
     -HORIZONTAL_GAP
   );
 
-  const nodeWidth = NODE_WIDTH + (node.spouse ? SPOUSE_NODE_WIDTH + 20 : 0);
+  const nodeWidth = NODE_WIDTH + spouseWidth;
   return Math.max(nodeWidth, childrenWidth);
 }
 
@@ -127,13 +118,16 @@ function layoutVertical(node: TreeNode, x: number, y: number): void {
 
   if (node.children.length === 0) return;
 
+  const spouseWidth = node.spouses.length > 0 
+    ? node.spouses.length * (SPOUSE_NODE_WIDTH + 10) 
+    : 0;
+
   node.children.forEach((child, index) => {
-    layoutVertical(child, x + NODE_WIDTH + HORIZONTAL_GAP + (node.spouse ? SPOUSE_NODE_WIDTH + 20 : 0), y + index * (NODE_HEIGHT + VERTICAL_GAP));
+    layoutVertical(child, x + NODE_WIDTH + HORIZONTAL_GAP + spouseWidth, y + index * (NODE_HEIGHT + VERTICAL_GAP));
   });
 }
 
 export function layoutTree(roots: TreeNode[], direction: TreeDirection): TreeNode[] {
-  // 按辈分分组布局
   const generationGroups = new Map<number, TreeNode[]>();
   
   roots.forEach(root => {
@@ -144,7 +138,6 @@ export function layoutTree(roots: TreeNode[], direction: TreeDirection): TreeNod
     generationGroups.get(gen)!.push(root);
   });
 
-  // 对每个世代组进行布局
   let currentY = 0;
   const sortedGenerations = Array.from(generationGroups.keys()).sort((a, b) => a - b);
   
@@ -174,7 +167,11 @@ export function getTreeBounds(roots: TreeNode[]): { minX: number; minY: number; 
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
   function visit(node: TreeNode) {
-    const nodeWidth = NODE_WIDTH + (node.spouse ? SPOUSE_NODE_WIDTH + 20 : 0);
+    const spouseWidth = node.spouses.length > 0 
+      ? node.spouses.length * (SPOUSE_NODE_WIDTH + 10) 
+      : 0;
+    const nodeWidth = NODE_WIDTH + spouseWidth;
+
     minX = Math.min(minX, node.x);
     minY = Math.min(minY, node.y);
     maxX = Math.max(maxX, node.x + nodeWidth);

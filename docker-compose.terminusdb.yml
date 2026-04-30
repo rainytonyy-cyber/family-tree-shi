@@ -1,0 +1,31 @@
+# TerminusDB Docker Compose for Family Tree
+# 启动: docker-compose -f docker-compose.terminusdb.yml up -d
+# 停止: docker-compose -f docker-compose.terminusdb.yml down
+
+version: '3.8'
+
+services:
+  terminusdb:
+    image: terminusdb/terminusdb-server:latest
+    container_name: family-tree-terminusdb
+    ports:
+      - "6363:6363"
+    environment:
+      # 管理员账户配置
+      - TERMINUSDB_ADMIN_PASS=admin
+      - TERMINUSDB_SERVER_URL=http://localhost:6363
+      # 启用CORS以支持前端访问
+      - TERMINUSDB_INSECURE_CORS=true
+    volumes:
+      # 数据持久化
+      - terminusdb_data:/app/terminusdb/storage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6363/api/ok"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  terminusdb_data:
+    driver: local

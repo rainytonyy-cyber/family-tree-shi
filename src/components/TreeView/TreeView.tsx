@@ -120,23 +120,25 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
       });
 
       // 绘制到配偶的连线（如果显示配偶）
-      if (showSpouses && node.spouse) {
-        const startX = node.x + NODE_WIDTH;
-        const startY = node.y + NODE_HEIGHT / 2;
-        const endX = node.x + NODE_WIDTH + 20;
-        const endY = node.y + NODE_HEIGHT / 2;
+      if (showSpouses && node.spouses && node.spouses.length > 0) {
+        node.spouses.forEach((spouse, index) => {
+          const startX = node.x + NODE_WIDTH;
+          const startY = node.y + NODE_HEIGHT / 2;
+          const endX = node.x + NODE_WIDTH + 20 + index * (SPOUSE_NODE_WIDTH + 20);
+          const endY = node.y + NODE_HEIGHT / 2;
 
-        connections.push(
-          <path
-            key={`${node.person.id}-${node.spouse.id}-spouse`}
-            d={`M ${startX} ${startY} L ${endX} ${endY}`}
-            fill="none"
-            stroke="rgba(201, 168, 76, 0.6)"
-            strokeWidth="2"
-            strokeDasharray="4,4"
-            strokeLinecap="round"
-          />
-        );
+          connections.push(
+            <path
+              key={`${node.person.id}-${spouse.id}-spouse`}
+              d={`M ${startX} ${startY} L ${endX} ${endY}`}
+              fill="none"
+              stroke="rgba(201, 168, 76, 0.6)"
+              strokeWidth="2"
+              strokeDasharray="4,4"
+              strokeLinecap="round"
+            />
+          );
+        });
       }
     };
 
@@ -290,7 +292,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           )}
 
           {/* 配偶连接指示器 */}
-          {showSpouses && node.spouse && (
+          {showSpouses && node.spouses && node.spouses.length > 0 && (
             <g>
               <circle
                 cx={NODE_WIDTH}
@@ -306,129 +308,133 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
       );
 
       // 配偶节点（如果显示）
-      if (showSpouses && node.spouse) {
-        const spouseIsSelected = node.spouse.id === selectedId;
-        const spouseIsHighlighted = highlightedIds.includes(node.spouse.id);
-        const spouseIsMale = node.spouse.gender === 'male';
+      if (showSpouses && node.spouses && node.spouses.length > 0) {
+        node.spouses.forEach((spouse, index) => {
+          const spouseIsSelected = spouse.id === selectedId;
+          const spouseIsHighlighted = highlightedIds.includes(spouse.id);
+          const spouseIsMale = spouse.gender === 'male';
 
-        let spouseFillColor = '#ffffff';
-        let spouseStrokeColor = '#d5d5e5';
-        let spouseTextColor = '#2d2d44';
-        let spouseSubtextColor = '#6b6b8a';
+          let spouseFillColor = '#ffffff';
+          let spouseStrokeColor = '#d5d5e5';
+          let spouseTextColor = '#2d2d44';
+          let spouseSubtextColor = '#6b6b8a';
 
-        if (spouseIsSelected) {
-          spouseFillColor = spouseIsMale ? '#1a1a2e' : '#2d8a6e';
-          spouseStrokeColor = spouseIsMale ? '#404060' : '#3a9d80';
-          spouseTextColor = '#faf8f5';
-          spouseSubtextColor = '#d5d5e5';
-        } else if (spouseIsHighlighted) {
-          spouseFillColor = '#fffbeb';
-          spouseStrokeColor = '#c9a84c';
-          spouseTextColor = '#1a1a2e';
-          spouseSubtextColor = '#6b6b8a';
-        } else {
-          spouseFillColor = '#faf8f5';
-          spouseStrokeColor = '#e0c87a';
-          spouseTextColor = '#2d2d44';
-          spouseSubtextColor = '#6b6b8a';
-        }
+          if (spouseIsSelected) {
+            spouseFillColor = spouseIsMale ? '#1a1a2e' : '#2d8a6e';
+            spouseStrokeColor = spouseIsMale ? '#404060' : '#3a9d80';
+            spouseTextColor = '#faf8f5';
+            spouseSubtextColor = '#d5d5e5';
+          } else if (spouseIsHighlighted) {
+            spouseFillColor = '#fffbeb';
+            spouseStrokeColor = '#c9a84c';
+            spouseTextColor = '#1a1a2e';
+            spouseSubtextColor = '#6b6b8a';
+          } else {
+            spouseFillColor = '#faf8f5';
+            spouseStrokeColor = '#e0c87a';
+            spouseTextColor = '#2d2d44';
+            spouseSubtextColor = '#6b6b8a';
+          }
 
-        const spouseShadowFilter = spouseIsSelected 
-          ? 'drop-shadow(0 4px 12px rgba(26, 26, 46, 0.15))' 
-          : 'drop-shadow(0 2px 4px rgba(26, 26, 46, 0.05))';
+          const spouseShadowFilter = spouseIsSelected 
+            ? 'drop-shadow(0 4px 12px rgba(26, 26, 46, 0.15))' 
+            : 'drop-shadow(0 2px 4px rgba(26, 26, 46, 0.05))';
 
-        nodes.push(
-          <g
-            key={node.spouse.id}
-            transform={`translate(${node.x + NODE_WIDTH + 20}, ${node.y + 10})`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelectPerson(node.spouse!.id);
-            }}
-            className="node-hover"
-            style={{ cursor: 'pointer', filter: spouseShadowFilter }}
-          >
-            {/* 配偶节点背景 */}
-            <rect
-              width={SPOUSE_NODE_WIDTH}
-              height={SPOUSE_NODE_HEIGHT}
-              rx="10"
-              fill={spouseFillColor}
-              stroke={spouseStrokeColor}
-              strokeWidth={spouseIsSelected ? 2.5 : 1.5}
-              strokeDasharray={spouseIsSelected ? 'none' : '4,2'}
-              className="transition-all duration-200"
-            />
-            
-            {/* 性别指示条 */}
-            <rect
-              x="0"
-              y="10"
-              width="3"
-              height={SPOUSE_NODE_HEIGHT - 20}
-              rx="1.5"
-              fill={spouseIsMale ? '#4a90d9' : '#e8689a'}
-              opacity={spouseIsSelected ? 0.9 : 0.6}
-            />
+          const spouseX = node.x + NODE_WIDTH + 20 + index * (SPOUSE_NODE_WIDTH + 20);
 
-            {/* 配偶标签 */}
-            <rect
-              x="8"
-              y="6"
-              width="28"
-              height="14"
-              rx="7"
-              fill="rgba(201, 168, 76, 0.2)"
-            />
-            <text
-              x="22"
-              y="16"
-              textAnchor="middle"
-              fill="#c9a84c"
-              fontSize="8"
-              fontWeight="600"
+          nodes.push(
+            <g
+              key={spouse.id}
+              transform={`translate(${spouseX}, ${node.y + 10})`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectPerson(spouse.id);
+              }}
+              className="node-hover"
+              style={{ cursor: 'pointer', filter: spouseShadowFilter }}
             >
-              配偶
-            </text>
-
-            {/* 配偶姓名 */}
-            <text
-              x={SPOUSE_NODE_WIDTH / 2 + 5}
-              y={40}
-              textAnchor="middle"
-              fill={spouseTextColor}
-              fontSize="13"
-              fontWeight="500"
-              style={{ fontFamily: "'Noto Serif SC', serif" }}
-            >
-              {node.spouse.name}
-            </text>
-            
-            {/* 配偶信息 */}
-            <text
-              x={SPOUSE_NODE_WIDTH / 2 + 5}
-              y={56}
-              textAnchor="middle"
-              fill={spouseSubtextColor}
-              fontSize="10"
-              style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
-            >
-              {node.spouse.birthDate ? `${node.spouse.birthDate}` : ''}
-            </text>
-
-            {/* 选中指示器 */}
-            {spouseIsSelected && (
-              <circle
-                cx={SPOUSE_NODE_WIDTH - 6}
-                cy="6"
-                r="3"
-                fill="#c9a84c"
-                stroke="#ffffff"
-                strokeWidth="1.5"
+              {/* 配偶节点背景 */}
+              <rect
+                width={SPOUSE_NODE_WIDTH}
+                height={SPOUSE_NODE_HEIGHT}
+                rx="10"
+                fill={spouseFillColor}
+                stroke={spouseStrokeColor}
+                strokeWidth={spouseIsSelected ? 2.5 : 1.5}
+                strokeDasharray={spouseIsSelected ? 'none' : '4,2'}
+                className="transition-all duration-200"
               />
-            )}
-          </g>
-        );
+              
+              {/* 性别指示条 */}
+              <rect
+                x="0"
+                y="10"
+                width="3"
+                height={SPOUSE_NODE_HEIGHT - 20}
+                rx="1.5"
+                fill={spouseIsMale ? '#4a90d9' : '#e8689a'}
+                opacity={spouseIsSelected ? 0.9 : 0.6}
+              />
+
+              {/* 配偶标签 */}
+              <rect
+                x="8"
+                y="6"
+                width="28"
+                height="14"
+                rx="7"
+                fill="rgba(201, 168, 76, 0.2)"
+              />
+              <text
+                x="22"
+                y="16"
+                textAnchor="middle"
+                fill="#c9a84c"
+                fontSize="8"
+                fontWeight="600"
+              >
+                配偶
+              </text>
+
+              {/* 配偶姓名 */}
+              <text
+                x={SPOUSE_NODE_WIDTH / 2 + 5}
+                y={40}
+                textAnchor="middle"
+                fill={spouseTextColor}
+                fontSize="13"
+                fontWeight="500"
+                style={{ fontFamily: "'Noto Serif SC', serif" }}
+              >
+                {spouse.name}
+              </text>
+              
+              {/* 配偶信息 */}
+              <text
+                x={SPOUSE_NODE_WIDTH / 2 + 5}
+                y={56}
+                textAnchor="middle"
+                fill={spouseSubtextColor}
+                fontSize="10"
+                style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+              >
+                {spouse.birthDate ? `${spouse.birthDate}` : ''}
+              </text>
+
+              {/* 选中指示器 */}
+              {spouseIsSelected && (
+                <circle
+                  cx={SPOUSE_NODE_WIDTH - 6}
+                  cy="6"
+                  r="3"
+                  fill="#c9a84c"
+                  stroke="#ffffff"
+                  strokeWidth="1.5"
+                />
+              )}
+            </g>
+          );
+        });
       }
 
       // 女儿节点（如果显示）

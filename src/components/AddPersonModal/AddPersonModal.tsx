@@ -19,11 +19,11 @@ export function AddPersonModal({ persons, onAdd, onClose }: AddPersonModalProps)
   // 获取可选的关联人员
   const getRelatedPersons = () => {
     if (relationType === 'child') {
-      // 子女：选择父母
+      // 子女：选择父亲（男性）
       return persons.filter(p => p.gender === 'male');
     } else if (relationType === 'spouse') {
-      // 配偶：选择未婚的人
-      return persons.filter(p => !p.spouseId);
+      // 配偶：选择没有配偶或配偶较少的人
+      return persons.filter(p => !p.spouseIds || p.spouseIds.length === 0);
     }
     return [];
   };
@@ -57,13 +57,18 @@ export function AddPersonModal({ persons, onAdd, onClose }: AddPersonModalProps)
     if (relationType === 'child' && relatedPersonId) {
       const parent = persons.find(p => p.id === relatedPersonId);
       if (parent) {
-        newPerson.parentId = relatedPersonId;
+        // 设置为父亲
+        newPerson.fatherId = relatedPersonId;
+        // 如果父亲有配偶，设置为母亲
+        if (parent.spouseIds && parent.spouseIds.length > 0) {
+          newPerson.motherId = parent.spouseIds[0];
+        }
         newPerson.generation = (parent.generation || 1) + 1;
       }
     } else if (relationType === 'spouse' && relatedPersonId) {
       const spouse = persons.find(p => p.id === relatedPersonId);
       if (spouse) {
-        newPerson.spouseId = relatedPersonId;
+        newPerson.spouseIds = [relatedPersonId];
         newPerson.generation = spouse.generation;
       }
     } else {

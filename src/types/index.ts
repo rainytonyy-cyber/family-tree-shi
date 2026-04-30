@@ -10,15 +10,26 @@ export interface Person {
   occupation?: string;
   address?: string;
   photoPath?: string;
-  parentId?: string;
-  spouseId?: string;
+  fatherId?: string;    // 父亲ID
+  motherId?: string;    // 母亲ID
+  spouseIds?: string[]; // 配偶ID列表（支持多配偶）
   generation?: number;
+  notes?: string;
+}
+
+export interface Partnership {
+  id: string;
+  partner1Id: string;
+  partner2Id: string;
+  startDate?: string;
+  endDate?: string;
+  status: 'married' | 'divorced' | 'widowed' | 'separated';
   notes?: string;
 }
 
 export interface TreeNode {
   person: Person;
-  spouse?: Person;
+  spouses: Person[];    // 多个配偶
   daughters: Person[];  // 女儿
   sonsInLaw: Person[];  // 女婿
   children: TreeNode[];

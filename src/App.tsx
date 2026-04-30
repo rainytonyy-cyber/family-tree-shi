@@ -70,7 +70,7 @@ function App() {
     const maleCount = persons.filter(p => p.gender === 'male').length;
     const femaleCount = persons.filter(p => p.gender === 'female').length;
     const generations = new Set(persons.map(p => p.generation || 1)).size;
-    const spouses = persons.filter(p => p.spouseId).length;
+    const spouses = persons.filter(p => p.spouseIds && p.spouseIds.length > 0).length;
     return { 
       total: persons.length, 
       male: maleCount, 
@@ -152,13 +152,14 @@ function App() {
   }, []);
 
   const handleAddPersonConfirm = useCallback((newPerson: Person) => {
-    // 如果是配偶关系，更新关联人的spouseId
-    if (newPerson.spouseId) {
-      setPersons(prev => prev.map(p => 
-        p.id === newPerson.spouseId 
-          ? { ...p, spouseId: newPerson.id }
-          : p
-      ));
+    // 如果是配偶关系，更新关联人的spouseIds
+    if (newPerson.spouseIds && newPerson.spouseIds.length > 0) {
+      setPersons(prev => prev.map(p => {
+        if (newPerson.spouseIds!.includes(p.id)) {
+          return { ...p, spouseIds: [...(p.spouseIds || []), newPerson.id] };
+        }
+        return p;
+      }));
     }
     
     setPersons(prev => [...prev, newPerson]);

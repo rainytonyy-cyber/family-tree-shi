@@ -11,21 +11,20 @@ interface PersonCardProps {
 export function PersonCard({ person, allPersons, onClose, onEdit, onDelete }: PersonCardProps) {
   if (!person) return null;
 
-  // 构建配偶关系映射（双向）
-  const spouseMap = new Map<string, Person>();
-  allPersons.forEach(p => {
-    if (p.spouseId) {
-      const spouse = allPersons.find(s => s.id === p.spouseId);
-      if (spouse) {
-        spouseMap.set(p.id, spouse);
-        spouseMap.set(spouse.id, p);
-      }
-    }
-  });
+  // 查找父亲和母亲
+  const father = person.fatherId ? allPersons.find(p => p.id === person.fatherId) : undefined;
+  const mother = person.motherId ? allPersons.find(p => p.id === person.motherId) : undefined;
 
-  const parent = person.parentId ? allPersons.find(p => p.id === person.parentId) : undefined;
-  const spouse = spouseMap.get(person.id);
-  const children = allPersons.filter(p => p.parentId === person.id);
+  // 查找所有配偶
+  const spouses = (person.spouseIds || [])
+    .map(id => allPersons.find(p => p.id === id))
+    .filter((p): p is Person => p !== undefined);
+
+  // 查找子女
+  const children = allPersons.filter(p => p.fatherId === person.id || p.motherId === person.id);
+  const sons = children.filter(p => p.gender === 'male');
+  const daughters = children.filter(p => p.gender === 'female');
+
   const isMale = person.gender === 'male';
 
   const infoItems = [
@@ -49,7 +48,6 @@ export function PersonCard({ person, allPersons, onClose, onEdit, onDelete }: Pe
       <div className="p-5 border-b border-ink-100 relative z-10">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
-            {/* 头像占位 */}
             <div className={`
               w-14 h-14 rounded-xl flex items-center justify-center
               ${isMale 
@@ -114,38 +112,74 @@ export function PersonCard({ person, allPersons, onClose, onEdit, onDelete }: Pe
           </h3>
           
           <div className="space-y-3">
-            {parent && (
-              <div className="flex items-center gap-3 p-2.5 bg-ink-50 rounded-lg">
-                <span className="text-base">👨‍👩‍👦</span>
+            {/* 父亲 */}
+            {father && (
+              <div className="flex items-center gap-3 p-2.5 bg-blue-50 rounded-lg">
+                <span className="text-base">👨</span>
                 <div>
-                  <span className="text-xs text-ink-500">父母</span>
-                  <p className="text-sm text-ink-800 font-medium">{parent.name}</p>
+                  <span className="text-xs text-ink-500">父亲</span>
+                  <p className="text-sm text-ink-800 font-medium">{father.name}</p>
+                </div>
+              </div>
+            )}
+
+            {/* 母亲 */}
+            {mother && (
+              <div className="flex items-center gap-3 p-2.5 bg-rose-50 rounded-lg">
+                <span className="text-base">👩</span>
+                <div>
+                  <span className="text-xs text-ink-500">母亲</span>
+                  <p className="text-sm text-ink-800 font-medium">{mother.name}</p>
                 </div>
               </div>
             )}
             
-            {spouse && (
-              <div className="flex items-center gap-3 p-2.5 bg-jade-50 rounded-lg">
+            {/* 配偶（支持多配偶） */}
+            {spouses.length > 0 && spouses.map((spouse, index) => (
+              <div key={spouse.id} className="flex items-center gap-3 p-2.5 bg-jade-50 rounded-lg">
                 <span className="text-base">💑</span>
                 <div>
-                  <span className="text-xs text-ink-500">配偶</span>
+                  <span className="text-xs text-ink-500">
+                    配偶{spouses.length > 1 ? ` ${index + 1}` : ''}
+                  </span>
                   <p className="text-sm text-ink-800 font-medium">{spouse.name}</p>
                 </div>
               </div>
-            )}
+            ))}
             
-            {children.length > 0 && (
-              <div className="flex items-start gap-3 p-2.5 bg-gold-100 rounded-lg">
-                <span className="text-base">👶</span>
+            {/* 儿子 */}
+            {sons.length > 0 && (
+              <div className="flex items-start gap-3 p-2.5 bg-blue-50 rounded-lg">
+                <span className="text-base">👦</span>
                 <div>
-                  <span className="text-xs text-ink-500">子女 ({children.length})</span>
+                  <span className="text-xs text-ink-500">儿子 ({sons.length})</span>
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
-                    {children.map(child => (
+                    {sons.map(son => (
                       <span 
-                        key={child.id}
-                        className="px-2 py-0.5 bg-white rounded-md text-xs text-ink-700 border border-ink-200"
+                        key={son.id}
+                        className="px-2 py-0.5 bg-white rounded-md text-xs text-ink-700 border border-blue-200"
                       >
-                        {child.name}
+                        {son.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 女儿 */}
+            {daughters.length > 0 && (
+              <div className="flex items-start gap-3 p-2.5 bg-rose-50 rounded-lg">
+                <span className="text-base">👧</span>
+                <div>
+                  <span className="text-xs text-ink-500">女儿 ({daughters.length})</span>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {daughters.map(daughter => (
+                      <span 
+                        key={daughter.id}
+                        className="px-2 py-0.5 bg-white rounded-md text-xs text-ink-700 border border-rose-200"
+                      >
+                        {daughter.name}
                       </span>
                     ))}
                   </div>
@@ -153,7 +187,7 @@ export function PersonCard({ person, allPersons, onClose, onEdit, onDelete }: Pe
               </div>
             )}
             
-            {!parent && !spouse && children.length === 0 && (
+            {!father && !mother && spouses.length === 0 && children.length === 0 && (
               <p className="text-sm text-ink-400 text-center py-3">暂无家庭关系信息</p>
             )}
           </div>
