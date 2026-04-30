@@ -196,6 +196,40 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           });
         });
       }
+
+      // 绘制表亲和妈妈之间的连线（如果显示表亲）
+      if (showDaughters && showCousins && node.daughters && node.cousins) {
+        node.daughters.forEach((daughter, daughterIndex) => {
+          const daughterX = node.x + daughterIndex * (SPOUSE_NODE_WIDTH + 15);
+          const daughterY = node.y + NODE_HEIGHT + 15;
+          
+          // 找到这个女儿的孩子（表亲）
+          const daughterChildren = node.cousins.filter(
+            c => c.fatherId === daughter.id || c.motherId === daughter.id
+          );
+          
+          daughterChildren.forEach((cousin, cousinIndex) => {
+            // 计算表亲节点位置
+            const cousinX = node.x + cousinIndex * (SPOUSE_NODE_WIDTH + 15);
+            const cousinY = node.y + NODE_HEIGHT + 15 + (SPOUSE_NODE_HEIGHT - 10 + 15);
+            
+            // 绘制从妈妈到表亲的连线
+            connections.push(
+              <path
+                key={`${daughter.id}-${cousin.id}-cousin`}
+                d={`M ${daughterX + SPOUSE_NODE_WIDTH / 2} ${daughterY + SPOUSE_NODE_HEIGHT - 10} 
+                    C ${daughterX + SPOUSE_NODE_WIDTH / 2} ${cousinY - 10}, 
+                      ${cousinX + SPOUSE_NODE_WIDTH / 2} ${cousinY - 10}, 
+                      ${cousinX + SPOUSE_NODE_WIDTH / 2} ${cousinY}`}
+                fill="none"
+                stroke="rgba(161, 161, 170, 0.5)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            );
+          });
+        });
+      }
     };
 
     laidOutRoots.forEach(visit);
