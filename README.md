@@ -40,7 +40,54 @@ start.bat
 .\start.ps1
 ```
 
+**方式四：macOS LaunchAgent 守护进程**
+```bash
+cat > "$HOME/Library/LaunchAgents/com.family-tree-shi.dev.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.family-tree-shi.dev</string>
+  <key>WorkingDirectory</key>
+  <string>$(pwd)</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>-lc</string>
+    <string>npm run dev -- --host 127.0.0.1</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/tmp/family-tree-shi.dev.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/family-tree-shi.dev.err.log</string>
+</dict>
+</plist>
+EOF
+
+launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.family-tree-shi.dev.plist"
+launchctl kickstart -k "gui/$(id -u)/com.family-tree-shi.dev"
+open http://localhost:5173/
+```
+
 启动后访问: http://localhost:5173/
+
+macOS 守护进程常用命令：
+
+```bash
+# 查看运行状态
+launchctl print "gui/$(id -u)/com.family-tree-shi.dev"
+
+# 查看日志
+tail -f /tmp/family-tree-shi.dev.log /tmp/family-tree-shi.dev.err.log
+
+# 停止并卸载守护进程
+launchctl bootout "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.family-tree-shi.dev.plist"
+```
 
 ### 构建生产版本
 
