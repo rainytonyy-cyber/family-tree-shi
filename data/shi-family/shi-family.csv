@@ -1,5 +1,5 @@
 id,name,gender,birthDate,deathDate,bloodType,nationality,education,occupation,address,photoPath,parentId,spouseId,generation,notes
-S001,史太公,male,1920-01-01,1995-05-10,O,汉族,私塾,农民,山东省,,,1,史家第一代
+S001,史太公,male,1920-01-01,1995-05-10,O,汉族,私塾,农民,山东省,,,,1,史家第一代
 S002,史太婆,female,1922-03-15,2000-08-20,A,汉族,,家庭主妇,山东省,,,S001,1,史太公配偶
 S003,史大伯,male,1945-06-20,,A,汉族,高中,教师,山东省济南市,,S001,,2,长子
 S004,史大伯母,female,1948-09-10,,B,汉族,初中,会计,山东省济南市,,,S003,2,史大伯配偶
