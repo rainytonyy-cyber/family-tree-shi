@@ -1,73 +1,116 @@
-# React + TypeScript + Vite
+# 家谱管理系统
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+基于 React + TypeScript + Vite + Tailwind CSS 构建的家谱管理应用，通过 CSV 管理数据，支持树状结构展示血缘关系和本地搜索功能。
 
-Currently, two official plugins are available:
+## 功能特性
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **CSV 数据管理** - 支持导入/导出 CSV 格式的家族数据
+- **树状血缘关系展示** - SVG 自绘树状图，支持水平/垂直布局切换
+- **交互操作** - 鼠标滚轮缩放、拖拽平移、重置视图
+- **本地搜索** - 支持按姓名、日期范围、职业、地址等多字段搜索
+- **人员管理** - 查看详情、编辑、删除、添加新成员
 
-## React Compiler
+## 快速开始
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 环境要求
 
-## Expanding the ESLint configuration
+- Node.js v18+ (推荐 v20+)
+- npm 或 pnpm
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 安装依赖
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 启动开发服务器
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**方式一：直接启动**
+```bash
+npm run dev
 ```
+
+**方式二：Windows 批处理**
+```bash
+start.bat
+```
+
+**方式三：PowerShell 脚本**
+```powershell
+.\start.ps1
+```
+
+启动后访问: http://localhost:5173/
+
+### 构建生产版本
+
+```bash
+npm run build
+```
+
+构建产物将输出到 `dist/` 目录。
+
+## 项目结构
+
+```
+family-tree/
+├── src/
+│   ├── components/          # UI 组件
+│   │   ├── TreeView/        # 树状图组件（缩放/拖拽/方向切换）
+│   │   ├── SearchPanel/     # 搜索面板
+│   │   ├── PersonCard/      # 人员详情卡片
+│   │   └── DataControls/    # CSV 导入导出控制
+│   ├── utils/               # 工具函数
+│   │   ├── csv.ts           # CSV 解析/生成
+│   │   ├── treeLayout.ts    # 树布局算法
+│   │   └── search.ts        # 搜索逻辑
+│   ├── types/               # TypeScript 类型定义
+│   ├── App.tsx              # 主应用组件
+│   └── main.tsx             # 入口文件
+├── data/
+│   └── sample.csv           # 示例数据
+├── start.bat                # Windows 启动脚本
+├── start.ps1                # PowerShell 启动脚本
+└── package.json
+```
+
+## CSV 数据格式
+
+支持以下字段：
+
+| 字段名 | 说明 | 示例 |
+|--------|------|------|
+| id | 唯一标识 | 1 |
+| name | 姓名 | 张三 |
+| gender | 性别 | male/female/other |
+| birthDate | 出生日期 | 1950-01-15 |
+| deathDate | 死亡日期 | 2020-05-10 |
+| bloodType | 血型 | A/B/AB/O |
+| nationality | 民族 | 汉族 |
+| education | 学历 | 本科 |
+| occupation | 职业 | 工程师 |
+| address | 地址 | 北京市 |
+| photoPath | 照片路径 | - |
+| parentId | 父母ID | 1 |
+| spouseId | 配偶ID | 2 |
+| notes | 备注 | - |
+
+## 使用说明
+
+1. **导入数据** - 点击「导入 CSV」按钮加载自定义数据
+2. **导出数据** - 点击「导出 CSV」按钮下载当前数据
+3. **搜索** - 点击「搜索」按钮展开搜索面板
+4. **切换布局** - 顶部下拉框切换水平/垂直布局
+5. **查看详情** - 点击节点查看人员详细信息
+6. **缩放拖拽** - 鼠标滚轮缩放，拖拽平移
+
+## 技术栈
+
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+
+## License
+
+MIT
