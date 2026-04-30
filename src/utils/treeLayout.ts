@@ -23,9 +23,10 @@ export function buildTree(
   persons.forEach(p => {
     const hasFather = p.fatherId && personMap.has(p.fatherId);
     const hasMother = p.motherId && personMap.has(p.motherId);
+    const hasSpouse = p.spouseIds && p.spouseIds.length > 0;
     
-    // 如果没有父母在数据中，且是男性，则作为根节点
-    if (!hasFather && !hasMother && p.gender === 'male') {
+    // 如果没有父母在数据中，且是男性，且没有配偶（不是通过婚姻进入家族的），则作为根节点
+    if (!hasFather && !hasMother && p.gender === 'male' && !hasSpouse) {
       roots.push(p);
     }
   });
