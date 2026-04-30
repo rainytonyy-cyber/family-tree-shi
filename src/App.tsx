@@ -2,31 +2,48 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import type { Person, SearchFilters, TreeDirection } from './types';
 import { buildTree } from './utils/treeLayout';
 import { searchPersons } from './utils/search';
+import { parseCSV } from './utils/csv';
 import { TreeView } from './components/TreeView/TreeView';
 import { SearchPanel } from './components/SearchPanel/SearchPanel';
 import { PersonCard } from './components/PersonCard/PersonCard';
 import { DataControls } from './components/DataControls/DataControls';
 
-const SAMPLE_DATA: Person[] = [
-  { id: '1', name: '张三', gender: 'male', birthDate: '1950-01-15', occupation: '工程师', nationality: '汉族', bloodType: 'A', education: '本科' },
-  { id: '2', name: '李四', gender: 'female', birthDate: '1952-03-20', occupation: '教师', nationality: '汉族', bloodType: 'B', spouseId: '1', education: '本科' },
-  { id: '3', name: '张明', gender: 'male', birthDate: '1975-06-10', parentId: '1', occupation: '医生', nationality: '汉族', bloodType: 'A', education: '硕士' },
-  { id: '4', name: '王芳', gender: 'female', birthDate: '1978-09-25', parentId: '1', occupation: '律师', nationality: '汉族', bloodType: 'O', spouseId: '3', education: '本科' },
-  { id: '5', name: '张小明', gender: 'male', birthDate: '2000-12-05', parentId: '3', occupation: '学生', nationality: '汉族', bloodType: 'A', education: '在读' },
-  { id: '6', name: '张小红', gender: 'female', birthDate: '2003-04-18', parentId: '3', occupation: '学生', nationality: '汉族', bloodType: 'B', education: '在读' },
-];
+// 史姓家族数据将从CSV文件加载
+const INITIAL_DATA: Person[] = [];
 
 function App() {
-  const [persons, setPersons] = useState<Person[]>(SAMPLE_DATA);
+  const [persons, setPersons] = useState<Person[]>(INITIAL_DATA);
   const [selectedId, setSelectedId] = useState<string | undefined>();
   const [searchResults, setSearchResults] = useState<Person[]>([]);
   const [direction, setDirection] = useState<TreeDirection>('horizontal');
   const [showSearch, setShowSearch] = useState(false);
   const [showPersonCard, setShowPersonCard] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [showSpouses, setShowSpouses] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
+  // 加载史姓家族数据
   useEffect(() => {
+    const loadShiFamilyData = async () => {
+      try {
+        const response = await fetch('/data/shi-family/shi-family.csv');
+        if (response.ok) {
+          const csvText = await response.text();
+          const parsed = parseCSV(csvText);
+          setPersons(parsed);
+          setDataLoaded(true);
+        } else {
+          console.warn('无法加载史姓家族数据，使用空数据');
+          setDataLoaded(true);
+        }
+      } catch (error) {
+        console.error('加载数据失败:', error);
+        setDataLoaded(true);
+      }
+    };
+
+    loadShiFamilyData();
     setIsLoaded(true);
   }, []);
 
@@ -41,24 +58,22 @@ function App() {
   );
 
   const treeRoots = useMemo(
-    () => buildTree(persons),
-    [persons]
+    () => buildTree(persons, showSpouses),
+    [persons, showSpouses]
   );
 
   const stats = useMemo(() => {
     const maleCount = persons.filter(p => p.gender === 'male').length;
     const femaleCount = persons.filter(p => p.gender === 'female').length;
-    const generations = new Set(persons.map(p => {
-      let gen = 0;
-      let current = p;
-      while (current.parentId) {
-        gen++;
-        current = persons.find(parent => parent.id === current.parentId) || current;
-        if (gen > 100) break;
-      }
-      return gen;
-    })).size;
-    return { total: persons.length, male: maleCount, female: femaleCount, generations };
+    const generations = new Set(persons.map(p => p.generation || 1)).size;
+    const spouses = persons.filter(p => p.spouseId).length;
+    return { 
+      total: persons.length, 
+      male: maleCount, 
+      female: femaleCount, 
+      generations,
+      spouses
+    };
   }, [persons]);
 
   useEffect(() => {
@@ -76,6 +91,10 @@ function App() {
           case 'i':
             e.preventDefault();
             setShowStats(prev => !prev);
+            break;
+          case 's':
+            e.preventDefault();
+            setShowSpouses(prev => !prev);
             break;
         }
       }
@@ -111,19 +130,26 @@ function App() {
     setPersons(imported);
     setSelectedId(undefined);
     setSearchResults([]);
+    setDataLoaded(true);
   }, []);
 
   const handleAddPerson = useCallback(() => {
+    const maxId = persons.reduce((max, p) => {
+      const num = parseInt(p.id.replace(/\D/g, ''), 10);
+      return isNaN(num) ? max : Math.max(max, num);
+    }, 0);
+    
     const newPerson: Person = {
-      id: String(Date.now()),
+      id: `S${String(maxId + 1).padStart(3, '0')}`,
       name: '新成员',
       gender: 'male',
       birthDate: new Date().toISOString().split('T')[0],
+      generation: 1,
     };
     setPersons(prev => [...prev, newPerson]);
     setSelectedId(newPerson.id);
     setShowPersonCard(true);
-  }, []);
+  }, [persons]);
 
   const handleEditPerson = useCallback((updated: Person) => {
     setPersons(prev => prev.map(p => p.id === updated.id ? updated : p));
@@ -156,7 +182,7 @@ function App() {
             <div className="relative">
               <div className="w-12 h-12 bg-gradient-to-br from-ink-800 to-ink-600 rounded-lg flex items-center justify-center shadow-lg">
                 <span className="text-rice-paper text-xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
-                  家
+                  史
                 </span>
               </div>
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-jade-500 rounded-full border-2 border-white"></div>
@@ -166,9 +192,9 @@ function App() {
                 className="text-2xl font-bold text-ink-900 tracking-wide"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                家谱管理系统
+                史氏家谱
               </h1>
-              <p className="text-xs text-ink-500 mt-0.5">Family Tree Management</p>
+              <p className="text-xs text-ink-500 mt-0.5">Shi Family Tree</p>
             </div>
           </div>
         </div>
@@ -199,6 +225,20 @@ function App() {
               <option value="vertical">垂直</option>
             </select>
           </div>
+
+          <button
+            onClick={() => setShowSpouses(!showSpouses)}
+            className={`
+              btn-ink px-4 py-2 rounded-lg text-sm font-medium 
+              transition-all duration-300
+              ${showSpouses
+                ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20'
+                : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+              }
+            `}
+          >
+            {showSpouses ? '隐藏配偶' : '显示配偶'}
+          </button>
           
           <button
             onClick={() => setShowStats(!showStats)}
@@ -232,13 +272,30 @@ function App() {
 
       {/* 主内容区 */}
       <main className="flex-1 flex overflow-hidden relative">
-        <TreeView
-          roots={treeRoots}
-          direction={direction}
-          selectedId={selectedId}
-          highlightedIds={highlightedIds}
-          onSelectPerson={handleSelectPerson}
-        />
+        {!dataLoaded ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin w-12 h-12 border-4 border-ink-200 border-t-jade-500 rounded-full mx-auto mb-4"></div>
+              <p className="text-ink-500">加载史姓家族数据中...</p>
+            </div>
+          </div>
+        ) : persons.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-ink-500 text-lg mb-2">暂无家族数据</p>
+              <p className="text-ink-400 text-sm">请点击「导入」按钮加载 CSV 数据文件</p>
+            </div>
+          </div>
+        ) : (
+          <TreeView
+            roots={treeRoots}
+            direction={direction}
+            selectedId={selectedId}
+            highlightedIds={highlightedIds}
+            onSelectPerson={handleSelectPerson}
+            showSpouses={showSpouses}
+          />
+        )}
 
         {/* 统计面板 - 水墨卡片风格 */}
         {showStats && (
@@ -247,7 +304,7 @@ function App() {
             bg-white/95 backdrop-blur-sm 
             rounded-xl shadow-xl shadow-ink-900/10
             border border-ink-200
-            p-5 w-56
+            p-5 w-64
             animate-fade-in-scale
             paper-texture
           ">
@@ -255,7 +312,7 @@ function App() {
               className="text-sm font-semibold text-ink-800 mb-4 pb-2 border-b border-ink-100"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              家族统计
+              史氏家族统计
             </h3>
             <div className="grid grid-cols-2 gap-3 relative z-10">
               <div className="text-center p-3 bg-ink-50 rounded-lg hover:bg-ink-100 transition-colors">
@@ -281,6 +338,12 @@ function App() {
                   {stats.female}
                 </div>
                 <div className="text-xs text-ink-500 mt-1">女性</div>
+              </div>
+              <div className="col-span-2 text-center p-3 bg-gold-100 rounded-lg hover:bg-gold-200 transition-colors">
+                <div className="text-2xl font-bold text-gold-500" style={{ fontFamily: 'var(--font-display)' }}>
+                  {stats.spouses}
+                </div>
+                <div className="text-xs text-ink-500 mt-1">配偶</div>
               </div>
             </div>
           </div>
@@ -323,12 +386,16 @@ function App() {
           </span>
           <span className="text-ink-300">|</span>
           <span>搜索结果: {searchResults.length}</span>
+          <span className="text-ink-300">|</span>
+          <span>配偶显示: {showSpouses ? '开' : '关'}</span>
         </div>
         <div className="flex items-center gap-2 text-ink-400">
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs">Ctrl+F</kbd>
           <span>搜索</span>
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+H</kbd>
           <span>切换布局</span>
+          <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+S</kbd>
+          <span>配偶</span>
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+I</kbd>
           <span>统计</span>
         </div>

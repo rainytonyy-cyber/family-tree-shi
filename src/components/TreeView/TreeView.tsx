@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import type { TreeNode, TreeDirection, ViewState } from '../../types';
-import { NODE_WIDTH, NODE_HEIGHT, layoutTree, getTreeBounds } from '../../utils/treeLayout';
+import { NODE_WIDTH, NODE_HEIGHT, SPOUSE_NODE_WIDTH, SPOUSE_NODE_HEIGHT, layoutTree, getTreeBounds } from '../../utils/treeLayout';
 
 interface TreeViewProps {
   roots: TreeNode[];
@@ -8,35 +8,37 @@ interface TreeViewProps {
   selectedId?: string;
   highlightedIds: string[];
   onSelectPerson: (id: string) => void;
+  showSpouses: boolean;
 }
 
-export function TreeView({ roots, direction, selectedId, highlightedIds, onSelectPerson }: TreeViewProps) {
+export function TreeView({ roots, direction, selectedId, highlightedIds, onSelectPerson, showSpouses }: TreeViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewState, setViewState] = useState<ViewState>({
     zoom: 1,
     panX: 0,
     panY: 0,
-    direction
+    direction,
+    showSpouses
   });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const laidOutRoots = layoutTree([...roots], direction);
   const bounds = getTreeBounds(laidOutRoots);
-  const padding = 120;
+  const padding = 150;
   void bounds;
 
   useEffect(() => {
-    setViewState(prev => ({ ...prev, direction }));
-  }, [direction]);
+    setViewState(prev => ({ ...prev, direction, showSpouses }));
+  }, [direction, showSpouses]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.95 : 1.05;
     setViewState(prev => ({
       ...prev,
-      zoom: Math.max(0.3, Math.min(2.5, prev.zoom * delta))
+      zoom: Math.max(0.2, Math.min(2, prev.zoom * delta))
     }));
   }, []);
 
@@ -65,6 +67,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
     const connections: React.ReactNode[] = [];
 
     const visit = (node: TreeNode, depth: number = 0) => {
+      // 绘制到子代的连线
       node.children.forEach((child) => {
         const startX = node.x + NODE_WIDTH / 2;
         const startY = node.y + NODE_HEIGHT;
@@ -72,8 +75,8 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
         const endY = child.y;
 
         // 水墨渐变色 - 随深度变化
-        const opacity = Math.max(0.3, 1 - depth * 0.15);
-        const strokeWidth = Math.max(1.5, 2.5 - depth * 0.3);
+        const opacity = Math.max(0.3, 1 - depth * 0.1);
+        const strokeWidth = Math.max(1.5, 2.5 - depth * 0.2);
 
         if (direction === 'horizontal') {
           const midX = (startX + endX) / 2;
@@ -111,6 +114,26 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
 
         visit(child, depth + 1);
       });
+
+      // 绘制到配偶的连线（如果显示配偶）
+      if (showSpouses && node.spouse) {
+        const startX = node.x + NODE_WIDTH;
+        const startY = node.y + NODE_HEIGHT / 2;
+        const endX = node.x + NODE_WIDTH + 20;
+        const endY = node.y + NODE_HEIGHT / 2;
+
+        connections.push(
+          <path
+            key={`${node.person.id}-${node.spouse.id}-spouse`}
+            d={`M ${startX} ${startY} L ${endX} ${endY}`}
+            fill="none"
+            stroke="rgba(201, 168, 76, 0.6)"
+            strokeWidth="2"
+            strokeDasharray="4,4"
+            strokeLinecap="round"
+          />
+        );
+      }
     };
 
     laidOutRoots.forEach(visit);
@@ -153,6 +176,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
         ? 'drop-shadow(0 4px 12px rgba(26, 26, 46, 0.15))' 
         : 'drop-shadow(0 2px 4px rgba(26, 26, 46, 0.05))';
 
+      // 主节点
       nodes.push(
         <g
           key={node.person.id}
@@ -183,10 +207,30 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
             opacity={isSelected ? 0.9 : 0.6}
           />
 
+          {/* 辈分标识 */}
+          <rect
+            x="8"
+            y="8"
+            width="24"
+            height="16"
+            rx="8"
+            fill={isSelected ? 'rgba(255,255,255,0.2)' : 'rgba(26, 26, 46, 0.05)'}
+          />
+          <text
+            x="20"
+            y="19"
+            textAnchor="middle"
+            fill={isSelected ? subtextColor : '#8b8ba8'}
+            fontSize="9"
+            fontWeight="600"
+          >
+            {node.generation || '?'}
+          </text>
+
           {/* 姓名 */}
           <text
-            x={NODE_WIDTH / 2}
-            y={32}
+            x={NODE_WIDTH / 2 + 10}
+            y={38}
             textAnchor="middle"
             fill={textColor}
             fontSize="15"
@@ -198,20 +242,19 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           
           {/* 信息行 */}
           <text
-            x={NODE_WIDTH / 2}
-            y={52}
+            x={NODE_WIDTH / 2 + 10}
+            y={58}
             textAnchor="middle"
             fill={subtextColor}
             fontSize="11"
             style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
           >
-            {node.person.gender === 'male' ? '♂' : node.person.gender === 'female' ? '♀' : '⚪'}
-            {node.person.birthDate ? `  ${node.person.birthDate}` : ''}
+            {node.person.birthDate ? `${node.person.birthDate}` : ''}
           </text>
 
           {/* 职业标签 */}
           {node.person.occupation && (
-            <g transform={`translate(${NODE_WIDTH / 2 - 20}, 58)`}>
+            <g transform={`translate(${NODE_WIDTH / 2 - 10}, 64)`}>
               <rect
                 width="40"
                 height="14"
@@ -241,14 +284,171 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
               strokeWidth="1.5"
             />
           )}
+
+          {/* 配偶连接指示器 */}
+          {showSpouses && node.spouse && (
+            <g>
+              <circle
+                cx={NODE_WIDTH}
+                cy={NODE_HEIGHT / 2}
+                r="4"
+                fill="#c9a84c"
+                stroke="#ffffff"
+                strokeWidth="1.5"
+              />
+            </g>
+          )}
         </g>
       );
+
+      // 配偶节点（如果显示）
+      if (showSpouses && node.spouse) {
+        const spouseIsSelected = node.spouse.id === selectedId;
+        const spouseIsHighlighted = highlightedIds.includes(node.spouse.id);
+        const spouseIsMale = node.spouse.gender === 'male';
+
+        let spouseFillColor = '#ffffff';
+        let spouseStrokeColor = '#d5d5e5';
+        let spouseTextColor = '#2d2d44';
+        let spouseSubtextColor = '#6b6b8a';
+
+        if (spouseIsSelected) {
+          spouseFillColor = spouseIsMale ? '#1a1a2e' : '#2d8a6e';
+          spouseStrokeColor = spouseIsMale ? '#404060' : '#3a9d80';
+          spouseTextColor = '#faf8f5';
+          spouseSubtextColor = '#d5d5e5';
+        } else if (spouseIsHighlighted) {
+          spouseFillColor = '#fffbeb';
+          spouseStrokeColor = '#c9a84c';
+          spouseTextColor = '#1a1a2e';
+          spouseSubtextColor = '#6b6b8a';
+        } else {
+          spouseFillColor = '#faf8f5';
+          spouseStrokeColor = '#e0c87a';
+          spouseTextColor = '#2d2d44';
+          spouseSubtextColor = '#6b6b8a';
+        }
+
+        const spouseShadowFilter = spouseIsSelected 
+          ? 'drop-shadow(0 4px 12px rgba(26, 26, 46, 0.15))' 
+          : 'drop-shadow(0 2px 4px rgba(26, 26, 46, 0.05))';
+
+        nodes.push(
+          <g
+            key={node.spouse.id}
+            transform={`translate(${node.x + NODE_WIDTH + 20}, ${node.y + 10})`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectPerson(node.spouse!.id);
+            }}
+            className="node-hover"
+            style={{ cursor: 'pointer', filter: spouseShadowFilter }}
+          >
+            {/* 配偶节点背景 */}
+            <rect
+              width={SPOUSE_NODE_WIDTH}
+              height={SPOUSE_NODE_HEIGHT}
+              rx="10"
+              fill={spouseFillColor}
+              stroke={spouseStrokeColor}
+              strokeWidth={spouseIsSelected ? 2.5 : 1.5}
+              strokeDasharray={spouseIsSelected ? 'none' : '4,2'}
+              className="transition-all duration-200"
+            />
+            
+            {/* 性别指示条 */}
+            <rect
+              x="0"
+              y="10"
+              width="3"
+              height={SPOUSE_NODE_HEIGHT - 20}
+              rx="1.5"
+              fill={spouseIsMale ? '#4a90d9' : '#e8689a'}
+              opacity={spouseIsSelected ? 0.9 : 0.6}
+            />
+
+            {/* 配偶标签 */}
+            <rect
+              x="8"
+              y="6"
+              width="28"
+              height="14"
+              rx="7"
+              fill="rgba(201, 168, 76, 0.2)"
+            />
+            <text
+              x="22"
+              y="16"
+              textAnchor="middle"
+              fill="#c9a84c"
+              fontSize="8"
+              fontWeight="600"
+            >
+              配偶
+            </text>
+
+            {/* 配偶姓名 */}
+            <text
+              x={SPOUSE_NODE_WIDTH / 2 + 5}
+              y={40}
+              textAnchor="middle"
+              fill={spouseTextColor}
+              fontSize="13"
+              fontWeight="500"
+              style={{ fontFamily: "'Noto Serif SC', serif" }}
+            >
+              {node.spouse.name}
+            </text>
+            
+            {/* 配偶信息 */}
+            <text
+              x={SPOUSE_NODE_WIDTH / 2 + 5}
+              y={56}
+              textAnchor="middle"
+              fill={spouseSubtextColor}
+              fontSize="10"
+              style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+            >
+              {node.spouse.birthDate ? `${node.spouse.birthDate}` : ''}
+            </text>
+
+            {/* 选中指示器 */}
+            {spouseIsSelected && (
+              <circle
+                cx={SPOUSE_NODE_WIDTH - 6}
+                cy="6"
+                r="3"
+                fill="#c9a84c"
+                stroke="#ffffff"
+                strokeWidth="1.5"
+              />
+            )}
+          </g>
+        );
+      }
 
       node.children.forEach(child => visit(child, depth + 1));
     };
 
     laidOutRoots.forEach(visit);
     return nodes;
+  };
+
+  // 渲染辈分分隔线
+  const renderGenerationLines = () => {
+    const lines: React.ReactNode[] = [];
+    const generations = new Set<number>();
+    
+    const collectGenerations = (node: TreeNode) => {
+      generations.add(node.generation || 1);
+      node.children.forEach(collectGenerations);
+    };
+    
+    laidOutRoots.forEach(collectGenerations);
+    
+    // 这里可以根据需要添加辈分分隔线
+    // 暂时返回空数组
+    return lines;
   };
 
   return (
@@ -260,7 +460,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
       {/* 控制按钮 */}
       <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
         <button
-          onClick={() => setViewState(prev => ({ ...prev, zoom: Math.min(2.5, prev.zoom * 1.15) }))}
+          onClick={() => setViewState(prev => ({ ...prev, zoom: Math.min(2, prev.zoom * 1.15) }))}
           className="
             w-10 h-10 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-ink-900/10
             border border-ink-200 text-ink-600 text-lg font-medium
@@ -272,7 +472,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           +
         </button>
         <button
-          onClick={() => setViewState(prev => ({ ...prev, zoom: Math.max(0.3, prev.zoom / 1.15) }))}
+          onClick={() => setViewState(prev => ({ ...prev, zoom: Math.max(0.2, prev.zoom / 1.15) }))}
           className="
             w-10 h-10 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-ink-900/10
             border border-ink-200 text-ink-600 text-lg font-medium
@@ -284,7 +484,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           −
         </button>
         <button
-          onClick={() => setViewState({ zoom: 1, panX: 0, panY: 0, direction })}
+          onClick={() => setViewState({ zoom: 1, panX: 0, panY: 0, direction, showSpouses })}
           className="
             w-10 h-10 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-ink-900/10
             border border-ink-200 text-ink-500 text-xs
@@ -305,6 +505,31 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           shadow-sm
         ">
           {Math.round(viewState.zoom * 100)}%
+        </div>
+      </div>
+
+      {/* 辈分图例 */}
+      <div className="absolute top-4 left-4 z-10">
+        <div className="
+          px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg
+          border border-ink-200 text-xs text-ink-600
+          shadow-sm
+        ">
+          <div className="font-semibold mb-1" style={{ fontFamily: 'var(--font-display)' }}>辈分</div>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="w-4 h-3 bg-blue-100 border border-blue-300 rounded"></span>
+              <span>男性</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-4 h-3 bg-rose-100 border border-rose-300 rounded"></span>
+              <span>女性</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-4 h-3 bg-gold-100 border border-gold-300 rounded border-dashed"></span>
+              <span>配偶</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -331,6 +556,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           transform={`translate(${viewState.panX + padding}, ${viewState.panY + padding}) scale(${viewState.zoom})`}
           className="transition-transform duration-100"
         >
+          {renderGenerationLines()}
           {renderConnections()}
           {renderNodes()}
         </g>

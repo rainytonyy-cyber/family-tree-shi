@@ -3,7 +3,7 @@ import type { Person } from '../types';
 const CSV_HEADERS: (keyof Person)[] = [
   'id', 'name', 'gender', 'birthDate', 'deathDate', 'bloodType',
   'nationality', 'education', 'occupation', 'address', 'photoPath',
-  'parentId', 'spouseId', 'notes'
+  'parentId', 'spouseId', 'generation', 'notes'
 ];
 
 function escapeCSV(value: string | undefined): string {
@@ -66,7 +66,13 @@ export function parseCSV(csvText: string): Person[] {
       person[header] = values[index] || '';
     });
 
-    persons.push(person as unknown as Person);
+    // 转换generation为数字
+    const parsed = person as unknown as Person;
+    if (parsed.generation) {
+      (parsed as any).generation = parseInt(parsed.generation as any, 10) || 1;
+    }
+
+    persons.push(parsed);
   }
 
   return persons;
@@ -75,7 +81,7 @@ export function parseCSV(csvText: string): Person[] {
 export function generateCSV(persons: Person[]): string {
   const headerLine = CSV_HEADERS.join(',');
   const dataLines = persons.map(person =>
-    CSV_HEADERS.map(header => escapeCSV(person[header])).join(',')
+    CSV_HEADERS.map(header => escapeCSV(String(person[header] || ''))).join(',')
   );
 
   return [headerLine, ...dataLines].join('\n');

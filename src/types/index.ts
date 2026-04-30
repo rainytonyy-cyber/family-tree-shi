@@ -12,14 +12,17 @@ export interface Person {
   photoPath?: string;
   parentId?: string;
   spouseId?: string;
+  generation?: number;
   notes?: string;
 }
 
 export interface TreeNode {
   person: Person;
+  spouse?: Person;
   children: TreeNode[];
   x: number;
   y: number;
+  generation: number;
 }
 
 export type TreeDirection = 'horizontal' | 'vertical';
@@ -42,4 +45,5 @@ export interface ViewState {
   panX: number;
   panY: number;
   direction: TreeDirection;
+  showSpouses: boolean;
 }
