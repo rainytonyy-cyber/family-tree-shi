@@ -47,16 +47,18 @@ export function DataControls({ persons, onImport, onAdd }: DataControlsProps) {
       <button
         onClick={() => fileInputRef.current?.click()}
         className="
-          btn-ink px-4 py-2 
-          bg-jade-500 text-white rounded-lg text-sm font-medium
-          hover:bg-jade-600
-          focus:outline-none focus:ring-2 focus:ring-jade-500/30
+          px-4 py-2 
+          bg-emerald-600 text-white rounded-lg text-sm font-medium
+          hover:bg-emerald-700
+          focus:outline-none focus:ring-2 focus:ring-emerald-500/30
           transition-all duration-200
-          shadow-sm shadow-jade-500/20
+          shadow-sm
           flex items-center gap-2
         "
       >
-        <span>📥</span>
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+        </svg>
         <span>导入</span>
       </button>
 
@@ -64,35 +66,39 @@ export function DataControls({ persons, onImport, onAdd }: DataControlsProps) {
         onClick={handleExport}
         disabled={persons.length === 0}
         className="
-          btn-ink px-4 py-2 
-          bg-ink-700 text-rice-paper rounded-lg text-sm font-medium
-          hover:bg-ink-800
-          focus:outline-none focus:ring-2 focus:ring-ink-700/30
+          px-4 py-2 
+          bg-slate-700 text-white rounded-lg text-sm font-medium
+          hover:bg-slate-800
+          focus:outline-none focus:ring-2 focus:ring-slate-500/30
           transition-all duration-200
-          shadow-sm shadow-ink-700/20
-          disabled:bg-ink-300 disabled:cursor-not-allowed disabled:shadow-none
+          shadow-sm
+          disabled:bg-slate-300 disabled:cursor-not-allowed
           flex items-center gap-2
         "
       >
-        <span>📤</span>
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
         <span>导出</span>
       </button>
 
-      <div className="h-6 w-px bg-ink-200"></div>
+      <div className="h-6 w-px bg-slate-300"></div>
 
       <button
         onClick={onAdd}
         className="
-          btn-ink px-4 py-2 
-          bg-gold-500 text-white rounded-lg text-sm font-medium
-          hover:bg-gold-400
-          focus:outline-none focus:ring-2 focus:ring-gold-500/30
+          px-4 py-2 
+          bg-amber-500 text-white rounded-lg text-sm font-medium
+          hover:bg-amber-600
+          focus:outline-none focus:ring-2 focus:ring-amber-500/30
           transition-all duration-200
-          shadow-sm shadow-gold-500/20
+          shadow-sm
           flex items-center gap-2
         "
       >
-        <span>➕</span>
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
         <span>添加</span>
       </button>
     </div>

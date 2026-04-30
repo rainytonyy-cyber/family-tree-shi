@@ -254,11 +254,11 @@ function App() {
           <button
             onClick={() => setShowSpouses(!showSpouses)}
             className={`
-              btn-ink px-4 py-2 rounded-lg text-sm font-medium 
+              px-5 py-2.5 rounded-xl text-sm font-medium 
               transition-all duration-300
               ${showSpouses
-                ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20'
-                : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+                ? 'bg-rose-500 text-white shadow-md shadow-rose-500/30'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
               }
             `}
           >
@@ -273,11 +273,11 @@ function App() {
               }
             }}
             className={`
-              btn-ink px-4 py-2 rounded-lg text-sm font-medium 
+              px-5 py-2.5 rounded-xl text-sm font-medium 
               transition-all duration-300
               ${showDaughters
-                ? 'bg-purple-500 text-white shadow-md shadow-purple-500/20'
-                : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+                ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
               }
             `}
           >
@@ -288,11 +288,11 @@ function App() {
             <button
               onClick={() => setShowSonsInLaw(!showSonsInLaw)}
               className={`
-                btn-ink px-4 py-2 rounded-lg text-sm font-medium 
+                px-5 py-2.5 rounded-xl text-sm font-medium 
                 transition-all duration-300
                 ${showSonsInLaw
-                  ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
-                  : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+                  ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/30'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                 }
               `}
             >
@@ -304,11 +304,11 @@ function App() {
             <button
               onClick={() => setShowCousins(!showCousins)}
               className={`
-                btn-ink px-4 py-2 rounded-lg text-sm font-medium 
+                px-5 py-2.5 rounded-xl text-sm font-medium 
                 transition-all duration-300
                 ${showCousins
-                  ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
-                  : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+                  ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                 }
               `}
             >
@@ -319,11 +319,11 @@ function App() {
           <button
             onClick={() => setShowStats(!showStats)}
             className={`
-              btn-ink px-4 py-2 rounded-lg text-sm font-medium 
+              px-5 py-2.5 rounded-xl text-sm font-medium 
               transition-all duration-300
               ${showStats
-                ? 'bg-jade-500 text-white shadow-md shadow-jade-500/20'
-                : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+                ? 'bg-teal-500 text-white shadow-md shadow-teal-500/30'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
               }
             `}
           >
@@ -333,11 +333,11 @@ function App() {
           <button
             onClick={() => setShowSearch(!showSearch)}
             className={`
-              btn-ink px-4 py-2 rounded-lg text-sm font-medium 
+              px-5 py-2.5 rounded-xl text-sm font-medium 
               transition-all duration-300
               ${showSearch
-                ? 'bg-ink-800 text-rice-paper shadow-md shadow-ink-800/20'
-                : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+                ? 'bg-slate-800 text-white shadow-md shadow-slate-800/30'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
               }
             `}
           >
