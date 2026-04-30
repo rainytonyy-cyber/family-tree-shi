@@ -35,14 +35,19 @@ export function buildTree(persons: Person[], showSpouses: boolean = true, showFe
     }
   });
 
-  // 找出根节点 - 没有parentId且是男性，或者是被标记为有后代的人
+  // 找出根节点 - 只有没有parentId的史姓血缘男性才能作为根节点
+  // 排除配偶（有spouseId的人）作为根节点
   const roots: Person[] = [];
   persons.forEach(p => {
-    if (!p.parentId || !personMap.has(p.parentId)) {
-      // 只有男性才能作为根节点
-      if (p.gender === 'male') {
-        roots.push(p);
-      }
+    // 条件1: 没有parentId
+    // 条件2: 是男性
+    // 条件3: 不是配偶（没有spouseId，或者是史姓血缘成员）
+    const hasNoParent = !p.parentId || !personMap.has(p.parentId);
+    const isMale = p.gender === 'male';
+    const isNotSpouse = !p.spouseId; // 配偶有spouseId，不应该作为根节点
+    
+    if (hasNoParent && isMale && isNotSpouse) {
+      roots.push(p);
     }
   });
 
