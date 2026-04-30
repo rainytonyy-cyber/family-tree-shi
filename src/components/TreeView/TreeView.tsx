@@ -754,6 +754,136 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
         });
       }
 
+      // 表亲节点（女儿的孩子，如果显示）
+      if (showDaughters && showCousins && node.cousins && node.cousins.length > 0) {
+        node.cousins.forEach((cousin, index) => {
+          const cousinIsSelected = cousin.id === selectedId;
+          const cousinIsHighlighted = highlightedIds.includes(cousin.id);
+          
+          let cousinFillColor = '#ffffff';
+          let cousinStrokeColor = '#d4d4d8';
+          let cousinTextColor = '#2d2d44';
+          let cousinSubtextColor = '#6b6b8a';
+
+          if (cousinIsSelected) {
+            cousinFillColor = '#2d8a6e';
+            cousinStrokeColor = '#3a9d80';
+            cousinTextColor = '#faf8f5';
+            cousinSubtextColor = '#d5d5e5';
+          } else if (cousinIsHighlighted) {
+            cousinFillColor = '#fffbeb';
+            cousinStrokeColor = '#c9a84c';
+            cousinTextColor = '#1a1a2e';
+            cousinSubtextColor = '#6b6b8a';
+          } else {
+            cousinFillColor = '#fafafa';
+            cousinStrokeColor = '#d4d4d8';
+            cousinTextColor = '#2d2d44';
+            cousinSubtextColor = '#6b6b8a';
+          }
+
+          const cousinShadowFilter = cousinIsSelected 
+            ? 'drop-shadow(0 4px 12px rgba(26, 26, 46, 0.15))' 
+            : 'drop-shadow(0 2px 4px rgba(26, 26, 46, 0.05))';
+
+          // 计算表亲节点位置（在女儿和女婿节点下方）
+          const cousinX = node.x + index * (SPOUSE_NODE_WIDTH + 15);
+          const cousinY = node.y + NODE_HEIGHT + 15 + (SPOUSE_NODE_HEIGHT - 10 + 15);
+
+          nodes.push(
+            <g
+              key={cousin.id}
+              transform={`translate(${cousinX}, ${cousinY})`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectPerson(cousin.id);
+              }}
+              className="node-hover"
+              style={{ cursor: 'pointer', filter: cousinShadowFilter }}
+            >
+              {/* 表亲节点背景 */}
+              <rect
+                width={SPOUSE_NODE_WIDTH}
+                height={SPOUSE_NODE_HEIGHT - 10}
+                rx="10"
+                fill={cousinFillColor}
+                stroke={cousinStrokeColor}
+                strokeWidth={cousinIsSelected ? 2.5 : 1.5}
+                className="transition-all duration-200"
+              />
+              
+              {/* 性别指示条 */}
+              <rect
+                x="0"
+                y="8"
+                width="3"
+                height={SPOUSE_NODE_HEIGHT - 26}
+                rx="1.5"
+                fill={cousin.gender === 'male' ? '#4a90d9' : '#e8689a'}
+                opacity={cousinIsSelected ? 0.9 : 0.6}
+              />
+
+              {/* 表亲标签 */}
+              <rect
+                x="8"
+                y="4"
+                width="28"
+                height="14"
+                rx="7"
+                fill="rgba(161, 161, 170, 0.2)"
+              />
+              <text
+                x="22"
+                y="14"
+                textAnchor="middle"
+                fill="#71717a"
+                fontSize="8"
+                fontWeight="600"
+              >
+                表亲
+              </text>
+
+              {/* 表亲姓名 */}
+              <text
+                x={SPOUSE_NODE_WIDTH / 2 + 5}
+                y={36}
+                textAnchor="middle"
+                fill={cousinTextColor}
+                fontSize="13"
+                fontWeight="500"
+                style={{ fontFamily: "'Noto Serif SC', serif" }}
+              >
+                {getFullName(cousin)}
+              </text>
+              
+              {/* 表亲信息 */}
+              <text
+                x={SPOUSE_NODE_WIDTH / 2 + 5}
+                y={50}
+                textAnchor="middle"
+                fill={cousinSubtextColor}
+                fontSize="10"
+                style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+              >
+                {cousin.birthDate ? `${cousin.birthDate}` : ''}
+              </text>
+
+              {/* 选中指示器 */}
+              {cousinIsSelected && (
+                <circle
+                  cx={SPOUSE_NODE_WIDTH - 6}
+                  cy="6"
+                  r="3"
+                  fill="#c9a84c"
+                  stroke="#ffffff"
+                  strokeWidth="1.5"
+                />
+              )}
+            </g>
+          );
+        });
+      }
+
       node.children.forEach(child => visit(child, depth + 1));
     };
 
