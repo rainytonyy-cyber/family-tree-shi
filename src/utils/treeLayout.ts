@@ -8,7 +8,13 @@ const HORIZONTAL_GAP = 50;
 const VERTICAL_GAP = 80;
 const GENERATION_GAP = 120;
 
-export function buildTree(persons: Person[], showSpouses: boolean = true, showDaughters: boolean = true, showSonsInLaw: boolean = true): TreeNode[] {
+export function buildTree(
+  persons: Person[], 
+  showSpouses: boolean = true, 
+  showDaughters: boolean = true, 
+  showSonsInLaw: boolean = true,
+  showCousins: boolean = false
+): TreeNode[] {
   const personMap = new Map<string, Person>();
   persons.forEach(p => personMap.set(p.id, p));
 
@@ -28,14 +34,14 @@ export function buildTree(persons: Person[], showSpouses: boolean = true, showDa
   roots.sort((a, b) => (a.generation || 1) - (b.generation || 1));
 
   function buildNode(person: Person): TreeNode {
-    // 找出该人的所有配偶
+    // 找出该人的所有配偶（包括儿子的配偶，受showSpouses控制）
     const spouses = showSpouses 
       ? (person.spouseIds || [])
           .map(id => personMap.get(id))
           .filter((p): p is Person => p !== undefined)
       : [];
 
-    // 找出该人的女儿（以该人为父亲）
+    // 找出该人的女儿
     const daughters = showDaughters 
       ? persons.filter(p => p.fatherId === person.id && p.gender === 'female')
       : [];
@@ -49,7 +55,12 @@ export function buildTree(persons: Person[], showSpouses: boolean = true, showDa
         )
       : [];
 
-    // 找出该人的儿子作为分支（以该人为父亲）
+    // 找出表亲（女儿的孩子）
+    const cousins = (showDaughters && showCousins)
+      ? persons.filter(p => daughters.some(d => d.id === p.fatherId || d.id === p.motherId))
+      : [];
+
+    // 找出该人的儿子作为主线分支
     const children = persons
       .filter(p => p.fatherId === person.id && p.gender === 'male')
       .sort((a, b) => {
@@ -64,6 +75,7 @@ export function buildTree(persons: Person[], showSpouses: boolean = true, showDa
       spouses,
       daughters,
       sonsInLaw,
+      cousins,
       children, 
       x: 0, 
       y: 0,

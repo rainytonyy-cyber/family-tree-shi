@@ -23,6 +23,7 @@ function App() {
   const [showSpouses, setShowSpouses] = useState(true);
   const [showDaughters, setShowDaughters] = useState(true);
   const [showSonsInLaw, setShowSonsInLaw] = useState(true);
+  const [showCousins, setShowCousins] = useState(false);  // 默认隐藏表亲
   const [showAddModal, setShowAddModal] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -62,8 +63,8 @@ function App() {
   );
 
   const treeRoots = useMemo(
-    () => buildTree(persons, showSpouses, showDaughters, showSonsInLaw),
-    [persons, showSpouses, showDaughters, showSonsInLaw]
+    () => buildTree(persons, showSpouses, showDaughters, showSonsInLaw, showCousins),
+    [persons, showSpouses, showDaughters, showSonsInLaw, showCousins]
   );
 
   const stats = useMemo(() => {
@@ -291,6 +292,22 @@ function App() {
               {showSonsInLaw ? '隐藏女婿' : '显示女婿'}
             </button>
           )}
+
+          {showDaughters && (
+            <button
+              onClick={() => setShowCousins(!showCousins)}
+              className={`
+                btn-ink px-4 py-2 rounded-lg text-sm font-medium 
+                transition-all duration-300
+                ${showCousins
+                  ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                  : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+                }
+              `}
+            >
+              {showCousins ? '隐藏表亲' : '显示表亲'}
+            </button>
+          )}
           
           <button
             onClick={() => setShowStats(!showStats)}
@@ -348,6 +365,7 @@ function App() {
             showSpouses={showSpouses}
             showDaughters={showDaughters}
             showSonsInLaw={showSonsInLaw}
+            showCousins={showCousins}
           />
         )}
 
@@ -465,6 +483,8 @@ function App() {
             <>
               <span className="text-ink-300">|</span>
               <span>女婿: {showSonsInLaw ? '开' : '关'}</span>
+              <span className="text-ink-300">|</span>
+              <span>表亲: {showCousins ? '开' : '关'}</span>
             </>
           )}
         </div>
@@ -477,8 +497,6 @@ function App() {
           <span>配偶</span>
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+D</kbd>
           <span>女儿</span>
-          <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+L</kbd>
-          <span>女婿</span>
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+I</kbd>
           <span>统计</span>
         </div>

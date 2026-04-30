@@ -29,10 +29,11 @@ export interface Partnership {
 
 export interface TreeNode {
   person: Person;
-  spouses: Person[];    // 多个配偶
-  daughters: Person[];  // 女儿
-  sonsInLaw: Person[];  // 女婿
-  children: TreeNode[];
+  spouses: Person[];       // 多个配偶（主线人物的配偶，包括儿子的配偶）
+  daughters: Person[];     // 女儿
+  sonsInLaw: Person[];     // 女婿（女儿的配偶）
+  cousins: Person[];       // 表亲（女儿的孩子）
+  children: TreeNode[];    // 主线儿子（作为子节点）
   x: number;
   y: number;
   generation: number;
@@ -58,7 +59,8 @@ export interface ViewState {
   panX: number;
   panY: number;
   direction: TreeDirection;
-  showSpouses: boolean;
-  showDaughters: boolean;
-  showSonsInLaw: boolean;
+  showSpouses: boolean;      // 显示配偶（包括儿媳）
+  showDaughters: boolean;    // 显示女儿
+  showSonsInLaw: boolean;    // 显示女婿
+  showCousins: boolean;      // 显示表亲（女儿的孩子）
 }

@@ -11,9 +11,10 @@ interface TreeViewProps {
   showSpouses: boolean;
   showDaughters: boolean;
   showSonsInLaw: boolean;
+  showCousins: boolean;
 }
 
-export function TreeView({ roots, direction, selectedId, highlightedIds, onSelectPerson, showSpouses, showDaughters, showSonsInLaw }: TreeViewProps) {
+export function TreeView({ roots, direction, selectedId, highlightedIds, onSelectPerson, showSpouses, showDaughters, showSonsInLaw, showCousins }: TreeViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewState, setViewState] = useState<ViewState>({
@@ -23,7 +24,8 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
     direction,
     showSpouses,
     showDaughters,
-    showSonsInLaw
+    showSonsInLaw,
+    showCousins
   });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -34,8 +36,8 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
   void bounds;
 
   useEffect(() => {
-    setViewState(prev => ({ ...prev, direction, showSpouses, showDaughters, showSonsInLaw }));
-  }, [direction, showSpouses, showDaughters, showSonsInLaw]);
+    setViewState(prev => ({ ...prev, direction, showSpouses, showDaughters, showSonsInLaw, showCousins }));
+  }, [direction, showSpouses, showDaughters, showSonsInLaw, showCousins]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -138,6 +140,59 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
               strokeLinecap="round"
             />
           );
+        });
+      }
+
+      // 绘制到女儿的连线（如果显示女儿）
+      if (showDaughters && node.daughters && node.daughters.length > 0) {
+        node.daughters.forEach((daughter, index) => {
+          const startX = node.x + NODE_WIDTH / 2;
+          const startY = node.y + NODE_HEIGHT;
+          const endX = node.x + index * (SPOUSE_NODE_WIDTH + 15) + SPOUSE_NODE_WIDTH / 2;
+          const endY = node.y + NODE_HEIGHT + 15;
+
+          connections.push(
+            <path
+              key={`${node.person.id}-${daughter.id}-daughter`}
+              d={`M ${startX} ${startY} C ${startX} ${startY + 10}, ${endX} ${endY - 10}, ${endX} ${endY}`}
+              fill="none"
+              stroke="rgba(232, 104, 154, 0.6)"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          );
+        });
+      }
+
+      // 绘制女儿和女婿之间的连线（如果显示女儿和女婿）
+      if (showDaughters && showSonsInLaw && node.daughters && node.sonsInLaw) {
+        node.daughters.forEach((daughter, daughterIndex) => {
+          const daughterX = node.x + daughterIndex * (SPOUSE_NODE_WIDTH + 15);
+          const daughterY = node.y + NODE_HEIGHT + 15;
+          
+          // 找到这个女儿的配偶
+          const daughterSpouses = (daughter.spouseIds || [])
+            .map(id => node.sonsInLaw?.find(s => s.id === id))
+            .filter(Boolean);
+          
+          daughterSpouses.forEach((spouse) => {
+            if (spouse) {
+              const spouseX = daughterX + SPOUSE_NODE_WIDTH + 10;
+              const spouseY = daughterY;
+              
+              connections.push(
+                <path
+                  key={`${daughter.id}-${spouse.id}-son-in-law`}
+                  d={`M ${daughterX + SPOUSE_NODE_WIDTH} ${daughterY + (SPOUSE_NODE_HEIGHT - 10) / 2} L ${spouseX} ${spouseY + (SPOUSE_NODE_HEIGHT - 10) / 2}`}
+                  fill="none"
+                  stroke="rgba(99, 102, 241, 0.6)"
+                  strokeWidth="2"
+                  strokeDasharray="4,4"
+                  strokeLinecap="round"
+                />
+              );
+            }
+          });
         });
       }
     };
@@ -755,7 +810,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           −
         </button>
         <button
-          onClick={() => setViewState({ zoom: 1, panX: 0, panY: 0, direction, showSpouses, showDaughters, showSonsInLaw })}
+          onClick={() => setViewState({ zoom: 1, panX: 0, panY: 0, direction, showSpouses, showDaughters, showSonsInLaw, showCousins })}
           className="
             w-10 h-10 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-ink-900/10
             border border-ink-200 text-ink-500 text-xs
