@@ -58,8 +58,13 @@ export function AddPersonModal({ persons, onAdd, onClose }: AddPersonModalProps)
       notes: notes || undefined,
     };
 
-    // 设置关系
-    if (relationType === 'child' && relatedPersonId) {
+    // 设置关系 - 必须选择关联人员
+    if (!relatedPersonId) {
+      alert('请选择关联人员');
+      return;
+    }
+
+    if (relationType === 'child') {
       const parent = persons.find(p => p.id === relatedPersonId);
       if (parent) {
         // 设置为父亲
@@ -70,15 +75,12 @@ export function AddPersonModal({ persons, onAdd, onClose }: AddPersonModalProps)
         }
         newPerson.generation = (parent.generation || 1) + 1;
       }
-    } else if (relationType === 'spouse' && relatedPersonId) {
+    } else if (relationType === 'spouse') {
       const spouse = persons.find(p => p.id === relatedPersonId);
       if (spouse) {
         newPerson.spouseIds = [relatedPersonId];
         newPerson.generation = spouse.generation;
       }
-    } else {
-      // 根节点或无关联
-      newPerson.generation = 1;
     }
 
     onAdd(newPerson);
@@ -231,43 +233,34 @@ export function AddPersonModal({ persons, onAdd, onClose }: AddPersonModalProps)
               >
                 配偶
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setRelationType('root');
-                  setRelatedPersonId('');
-                }}
-                className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
-                  relationType === 'root'
-                    ? 'bg-ink-700 text-white shadow-sm'
-                    : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
-                }`}
-              >
-                始祖
-              </button>
             </div>
           </div>
 
+          {/* 提示信息 */}
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-xs text-amber-700">
+              <span className="font-semibold">注意：</span>根节点（始祖）不允许通过前端添加，只能通过修改数据文件添加。
+            </p>
+          </div>
+
           {/* 关联人员选择 */}
-          {relationType !== 'root' && (
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-1">
-                {relationType === 'child' ? '选择父亲' : '选择配偶'}
-              </label>
-              <select
-                value={relatedPersonId}
-                onChange={e => setRelatedPersonId(e.target.value)}
-                className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-jade-400/30 focus:border-jade-400"
-              >
-                <option value="">请选择...</option>
-                {relatedPersons.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {getFullName(p)} ({p.id}) - 第{p.generation || '?'}代
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-ink-700 mb-1">
+              {relationType === 'child' ? '选择父亲' : '选择配偶'} <span className="text-cinnabar">*</span>
+            </label>
+            <select
+              value={relatedPersonId}
+              onChange={e => setRelatedPersonId(e.target.value)}
+              className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-jade-400/30 focus:border-jade-400"
+            >
+              <option value="">请选择...</option>
+              {relatedPersons.map(p => (
+                <option key={p.id} value={p.id}>
+                  {getFullName(p)} ({p.id}) - 第{p.generation || '?'}代
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* 职业 */}
           <div>

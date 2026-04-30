@@ -18,18 +18,23 @@ export function buildTree(
   const personMap = new Map<string, Person>();
   persons.forEach(p => personMap.set(p.id, p));
 
-  // 找出根节点 - 没有父亲也没有母亲的人（或者父母都不在数据中）
-  const roots: Person[] = [];
+  // 找出根节点 - 只允许一个根节点
+  // 根节点是没有父亲也没有母亲、没有配偶的男性
+  const potentialRoots: Person[] = [];
   persons.forEach(p => {
     const hasFather = p.fatherId && personMap.has(p.fatherId);
     const hasMother = p.motherId && personMap.has(p.motherId);
     const hasSpouse = p.spouseIds && p.spouseIds.length > 0;
     
-    // 如果没有父母在数据中，且是男性，且没有配偶（不是通过婚姻进入家族的），则作为根节点
+    // 如果没有父母在数据中，且是男性，且没有配偶（不是通过婚姻进入家族的），则作为潜在根节点
     if (!hasFather && !hasMother && p.gender === 'male' && !hasSpouse) {
-      roots.push(p);
+      potentialRoots.push(p);
     }
   });
+
+  // 按辈分排序，取辈分最低的作为唯一根节点
+  potentialRoots.sort((a, b) => (a.generation || 1) - (b.generation || 1));
+  const roots: Person[] = potentialRoots.length > 0 ? [potentialRoots[0]] : [];
 
   // 按辈分排序
   roots.sort((a, b) => (a.generation || 1) - (b.generation || 1));
