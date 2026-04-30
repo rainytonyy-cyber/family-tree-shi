@@ -809,11 +809,11 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
               className="node-hover"
               style={{ cursor: 'pointer', filter: cousinShadowFilter }}
             >
-              {/* 表亲节点背景 */}
+              {/* 表亲节点背景 - 缩小高度 */}
               <rect
                 width={SPOUSE_NODE_WIDTH}
-                height={SPOUSE_NODE_HEIGHT - 10}
-                rx="10"
+                height={SPOUSE_NODE_HEIGHT - 20}
+                rx="8"
                 fill={cousinFillColor}
                 stroke={cousinStrokeColor}
                 strokeWidth={cousinIsSelected ? 2.5 : 1.5}
@@ -823,9 +823,9 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
               {/* 性别指示条 */}
               <rect
                 x="0"
-                y="8"
+                y="6"
                 width="3"
-                height={SPOUSE_NODE_HEIGHT - 26}
+                height={SPOUSE_NODE_HEIGHT - 32}
                 rx="1.5"
                 fill={cousin.gender === 'male' ? '#4a90d9' : '#e8689a'}
                 opacity={cousinIsSelected ? 0.9 : 0.6}
@@ -834,18 +834,18 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
               {/* 表亲标签 */}
               <rect
                 x="8"
-                y="4"
+                y="3"
                 width="28"
-                height="14"
-                rx="7"
+                height="12"
+                rx="6"
                 fill="rgba(161, 161, 170, 0.2)"
               />
               <text
                 x="22"
-                y="14"
+                y="12"
                 textAnchor="middle"
                 fill="#71717a"
-                fontSize="8"
+                fontSize="7"
                 fontWeight="600"
               >
                 表亲
@@ -854,10 +854,10 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
               {/* 表亲姓名 */}
               <text
                 x={SPOUSE_NODE_WIDTH / 2 + 5}
-                y={36}
+                y={30}
                 textAnchor="middle"
                 fill={cousinTextColor}
-                fontSize="13"
+                fontSize="12"
                 fontWeight="500"
                 style={{ fontFamily: "'Noto Serif SC', serif" }}
               >
@@ -867,7 +867,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
               {/* 表亲信息 */}
               <text
                 x={SPOUSE_NODE_WIDTH / 2 + 5}
-                y={50}
+                y={42}
                 textAnchor="middle"
                 fill={cousinSubtextColor}
                 fontSize="10"

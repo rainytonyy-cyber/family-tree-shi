@@ -11,19 +11,19 @@ const BASE_VERTICAL_GAP = 60;
 const BASE_GENERATION_GAP = 100;
 
 // 动态间距计算：根据显示选项增加间距
-function getVerticalGap(showDaughters: boolean, showSonsInLaw: boolean, showCousins: boolean): number {
+function getVerticalGap(showDaughters: boolean, _showSonsInLaw: boolean, showCousins: boolean): number {
   let gap = BASE_VERTICAL_GAP;
   if (showDaughters) gap += 30;      // 显示女儿时增加间距
-  if (showSonsInLaw) gap += 20;      // 显示女婿时再增加
-  if (showCousins) gap += 40;        // 显示表亲时再增加
+  // 女婿和女儿同一行，无需额外增加
+  if (showCousins) gap += 50;        // 显示表亲时增加间距
   return gap;
 }
 
-function getGenerationGap(showDaughters: boolean, showSonsInLaw: boolean, showCousins: boolean): number {
+function getGenerationGap(showDaughters: boolean, _showSonsInLaw: boolean, showCousins: boolean): number {
   let gap = BASE_GENERATION_GAP;
   if (showDaughters) gap += 40;      // 显示女儿时增加辈分间距
-  if (showSonsInLaw) gap += 30;      // 显示女婿时再增加
-  if (showCousins) gap += 50;        // 显示表亲时再增加
+  // 女婿和女儿同一行，无需额外增加
+  if (showCousins) gap += 50;        // 显示表亲时增加辈分间距
   return gap;
 }
 
