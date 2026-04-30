@@ -137,9 +137,16 @@ function App() {
   }, []);
 
   const handleSelectPerson = useCallback((id: string) => {
-    setSelectedId(id);
-    setShowPersonCard(true);
-  }, []);
+    if (selectedId === id) {
+      // 反选：点击已选中的节点，取消选中并收起详情面板
+      setSelectedId(undefined);
+      setShowPersonCard(false);
+    } else {
+      // 选中新节点
+      setSelectedId(id);
+      setShowPersonCard(true);
+    }
+  }, [selectedId]);
 
   const handleImport = useCallback((imported: Person[]) => {
     setPersons(imported);

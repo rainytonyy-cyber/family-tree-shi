@@ -204,6 +204,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
 
   const renderNodes = () => {
     const nodes: React.ReactNode[] = [];
+    const selectedNodes: React.ReactNode[] = [];  // 单独收集选中的节点
 
     const visit = (node: TreeNode, depth: number = 0) => {
       const isSelected = node.person.id === selectedId;
@@ -238,8 +239,11 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
         ? 'drop-shadow(0 4px 12px rgba(26, 26, 46, 0.15))' 
         : 'drop-shadow(0 2px 4px rgba(26, 26, 46, 0.05))';
 
+      // 决定添加到哪个数组：选中的节点添加到selectedNodes，其他添加到nodes
+      const targetArray = isSelected ? selectedNodes : nodes;
+
       // 主节点
-      nodes.push(
+      targetArray.push(
         <g
           key={node.person.id}
           transform={`translate(${node.x}, ${node.y})`}
@@ -397,8 +401,9 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
             : 'drop-shadow(0 2px 4px rgba(26, 26, 46, 0.05))';
 
           const spouseX = node.x + NODE_WIDTH + 20 + index * (SPOUSE_NODE_WIDTH + 20);
+          const spouseTargetArray = spouseIsSelected ? selectedNodes : nodes;
 
-          nodes.push(
+          spouseTargetArray.push(
             <g
               key={spouse.id}
               transform={`translate(${spouseX}, ${node.y + 10})`}
@@ -528,8 +533,9 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           // 计算女儿节点位置（在主节点下方）
           const daughterX = node.x + index * (SPOUSE_NODE_WIDTH + 15);
           const daughterY = node.y + NODE_HEIGHT + 15;
+          const daughterTargetArray = daughterIsSelected ? selectedNodes : nodes;
 
-          nodes.push(
+          daughterTargetArray.push(
             <g
               key={daughter.id}
               transform={`translate(${daughterX}, ${daughterY})`}
@@ -659,8 +665,9 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           const daughtersCount = node.daughters?.length || 0;
           const sonInLawX = node.x + (daughtersCount + index) * (SPOUSE_NODE_WIDTH + 15);
           const sonInLawY = node.y + NODE_HEIGHT + 15;
+          const sonInLawTargetArray = sonInLawIsSelected ? selectedNodes : nodes;
 
-          nodes.push(
+          sonInLawTargetArray.push(
             <g
               key={sonInLaw.id}
               transform={`translate(${sonInLawX}, ${sonInLawY})`}
@@ -789,8 +796,9 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           // 计算表亲节点位置（在女儿和女婿节点下方）
           const cousinX = node.x + index * (SPOUSE_NODE_WIDTH + 15);
           const cousinY = node.y + NODE_HEIGHT + 15 + (SPOUSE_NODE_HEIGHT - 10 + 15);
+          const cousinTargetArray = cousinIsSelected ? selectedNodes : nodes;
 
-          nodes.push(
+          cousinTargetArray.push(
             <g
               key={cousin.id}
               transform={`translate(${cousinX}, ${cousinY})`}
@@ -888,7 +896,9 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
     };
 
     laidOutRoots.forEach(visit);
-    return nodes;
+    
+    // 将选中的节点添加到末尾，确保它们渲染在最上层
+    return [...nodes, ...selectedNodes];
   };
 
   // 渲染辈分分隔线
