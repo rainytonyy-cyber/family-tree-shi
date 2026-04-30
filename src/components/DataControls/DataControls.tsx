@@ -46,24 +46,54 @@ export function DataControls({ persons, onImport, onAddPerson }: DataControlsPro
 
       <button
         onClick={() => fileInputRef.current?.click()}
-        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+        className="
+          btn-ink px-4 py-2 
+          bg-jade-500 text-white rounded-lg text-sm font-medium
+          hover:bg-jade-600
+          focus:outline-none focus:ring-2 focus:ring-jade-500/30
+          transition-all duration-200
+          shadow-sm shadow-jade-500/20
+          flex items-center gap-2
+        "
       >
-        导入 CSV
+        <span>📥</span>
+        <span>导入</span>
       </button>
 
       <button
         onClick={handleExport}
         disabled={persons.length === 0}
-        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        className="
+          btn-ink px-4 py-2 
+          bg-ink-700 text-rice-paper rounded-lg text-sm font-medium
+          hover:bg-ink-800
+          focus:outline-none focus:ring-2 focus:ring-ink-700/30
+          transition-all duration-200
+          shadow-sm shadow-ink-700/20
+          disabled:bg-ink-300 disabled:cursor-not-allowed disabled:shadow-none
+          flex items-center gap-2
+        "
       >
-        导出 CSV
+        <span>📤</span>
+        <span>导出</span>
       </button>
+
+      <div className="h-6 w-px bg-ink-200"></div>
 
       <button
         onClick={onAddPerson}
-        className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        className="
+          btn-ink px-4 py-2 
+          bg-gold-500 text-white rounded-lg text-sm font-medium
+          hover:bg-gold-400
+          focus:outline-none focus:ring-2 focus:ring-gold-500/30
+          transition-all duration-200
+          shadow-sm shadow-gold-500/20
+          flex items-center gap-2
+        "
       >
-        添加人员
+        <span>➕</span>
+        <span>添加</span>
       </button>
     </div>
   );

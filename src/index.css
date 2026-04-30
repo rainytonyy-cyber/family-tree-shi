@@ -1,51 +1,57 @@
 @import "tailwindcss";
 
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* 水墨新韵 - Chinese Ink Wash meets Modern */
+  --ink-900: #1a1a2e;
+  --ink-800: #2d2d44;
+  --ink-700: #404060;
+  --ink-600: #535378;
+  --ink-500: #6b6b8a;
+  --ink-400: #8b8ba8;
+  --ink-300: #b0b0c8;
+  --ink-200: #d5d5e5;
+  --ink-100: #eaeaf2;
+  --ink-50: #f5f5fa;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --rice-paper: #faf8f5;
+  --rice-paper-dark: #f0ede8;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  --jade-600: #2d8a6e;
+  --jade-500: #3a9d80;
+  --jade-400: #4db89a;
+  --jade-300: #7ccfb5;
+  --jade-200: #b5e5d5;
+  --jade-100: #e0f5ed;
+
+  --gold-500: #c9a84c;
+  --gold-400: #d4b85e;
+  --gold-300: #e0c87a;
+  --gold-200: #ebdaa0;
+
+  --cinnabar: #c44536;
+  --cinnabar-light: #e8685a;
+
+  --font-display: 'Noto Serif SC', 'SimSun', 'STSong', serif;
+  --font-body: 'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color-scheme: light;
+  color: var(--ink-800);
+  background: var(--rice-paper);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 #root {
@@ -53,9 +59,169 @@
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  background: var(--rice-paper);
+}
+
+/* 水墨风格滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ink-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ink-300);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-400);
+}
+
+/* 水墨渐变背景 */
+.ink-wash-bg {
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(45, 138, 110, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(201, 168, 76, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(26, 26, 46, 0.02) 0%, transparent 50%),
+    var(--rice-paper);
+}
+
+/* 宣纸纹理效果 */
+.paper-texture {
+  position: relative;
+}
+
+.paper-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 毛笔笔触边框 */
+.brush-border {
+  border-image: linear-gradient(
+    to right,
+    var(--ink-800) 0%,
+    var(--ink-600) 20%,
+    var(--ink-400) 50%,
+    var(--ink-600) 80%,
+    var(--ink-800) 100%
+  ) 1;
+}
+
+/* 淡入动画 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes inkSpread {
+  from { opacity: 0; transform: scale(0.8); filter: blur(4px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.3s ease-out forwards;
+}
+
+.animate-ink-spread {
+  animation: inkSpread 0.5s ease-out forwards;
+}
+
+.animate-slide-right {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+.animate-slide-left {
+  animation: slideInLeft 0.3s ease-out forwards;
+}
+
+/* 延迟动画 */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+
+/* 按钮悬停效果 */
+.btn-ink {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-ink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+
+.btn-ink:hover::after {
+  transform: translateX(100%);
+}
+
+/* 卡片悬停效果 */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 4px 6px -1px rgba(26, 26, 46, 0.05),
+    0 10px 15px -3px rgba(26, 26, 46, 0.08);
+}
+
+/* 输入框焦点效果 */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--jade-400);
+  box-shadow: 0 0 0 3px rgba(77, 184, 154, 0.15);
+}
+
+/* 选中状态 */
+.selected-ring {
+  box-shadow: 0 0 0 2px var(--jade-400), 0 0 0 4px rgba(77, 184, 154, 0.2);
+}
+
+/* 节点悬停效果 */
+.node-hover {
+  transition: all 0.2s ease;
+}
+
+.node-hover:hover {
+  filter: brightness(1.05);
+  cursor: pointer;
 }
