@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import type { TreeNode, TreeDirection, ViewState } from '../../types';
+import { getFullName } from '../../types';
 import { NODE_WIDTH, NODE_HEIGHT, SPOUSE_NODE_WIDTH, SPOUSE_NODE_HEIGHT, layoutTree, getTreeBounds } from '../../utils/treeLayout';
 
 interface TreeViewProps {
@@ -298,7 +299,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
             fontWeight="600"
             style={{ fontFamily: "'Noto Serif SC', serif" }}
           >
-            {node.person.name}
+            {getFullName(node.person)}
           </text>
           
           {/* 信息行 */}
@@ -461,7 +462,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
                 fontWeight="500"
                 style={{ fontFamily: "'Noto Serif SC', serif" }}
               >
-                {spouse.name}
+                {getFullName(spouse)}
               </text>
               
               {/* 配偶信息 */}
@@ -591,7 +592,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
                 fontWeight="500"
                 style={{ fontFamily: "'Noto Serif SC', serif" }}
               >
-                {daughter.name}
+                {getFullName(daughter)}
               </text>
               
               {/* 女儿信息 */}
@@ -722,7 +723,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
                 fontWeight="500"
                 style={{ fontFamily: "'Noto Serif SC', serif" }}
               >
-                {sonInLaw.name}
+                {getFullName(sonInLaw)}
               </text>
               
               {/* 女婿信息 */}

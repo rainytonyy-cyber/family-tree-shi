@@ -1,4 +1,5 @@
 import type { Person } from '../../types';
+import { getFullName } from '../../types';
 
 interface PersonCardProps {
   person: Person | undefined;
@@ -26,8 +27,12 @@ export function PersonCard({ person, allPersons, onClose, onEdit, onDelete }: Pe
   const daughters = children.filter(p => p.gender === 'female');
 
   const isMale = person.gender === 'male';
+  const fullName = getFullName(person);
 
   const infoItems = [
+    { label: '姓', value: person.surname, icon: '姓' },
+    { label: '名', value: person.givenName, icon: '名' },
+    { label: '曾用名', value: person.previousNames?.join('、'), icon: '曾' },
     { label: '出生日期', value: person.birthDate, icon: '📅' },
     { label: '死亡日期', value: person.deathDate, icon: '🕊️' },
     { label: '血型', value: person.bloodType, icon: '🩸' },
@@ -62,8 +67,13 @@ export function PersonCard({ person, allPersons, onClose, onEdit, onDelete }: Pe
                 className="text-xl font-bold text-ink-800"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                {person.name}
+                {fullName}
               </h2>
+              {person.previousNames && person.previousNames.length > 0 && (
+                <p className="text-xs text-ink-400 mt-0.5">
+                  曾用名：{person.previousNames.join('、')}
+                </p>
+              )}
               <p className="text-xs text-ink-500 mt-0.5">
                 {person.occupation || '未填写职业'}
               </p>
@@ -118,7 +128,7 @@ export function PersonCard({ person, allPersons, onClose, onEdit, onDelete }: Pe
                 <span className="text-base">👨</span>
                 <div>
                   <span className="text-xs text-ink-500">父亲</span>
-                  <p className="text-sm text-ink-800 font-medium">{father.name}</p>
+                  <p className="text-sm text-ink-800 font-medium">{getFullName(father)}</p>
                 </div>
               </div>
             )}
@@ -129,7 +139,7 @@ export function PersonCard({ person, allPersons, onClose, onEdit, onDelete }: Pe
                 <span className="text-base">👩</span>
                 <div>
                   <span className="text-xs text-ink-500">母亲</span>
-                  <p className="text-sm text-ink-800 font-medium">{mother.name}</p>
+                  <p className="text-sm text-ink-800 font-medium">{getFullName(mother)}</p>
                 </div>
               </div>
             )}
@@ -142,7 +152,7 @@ export function PersonCard({ person, allPersons, onClose, onEdit, onDelete }: Pe
                   <span className="text-xs text-ink-500">
                     配偶{spouses.length > 1 ? ` ${index + 1}` : ''}
                   </span>
-                  <p className="text-sm text-ink-800 font-medium">{spouse.name}</p>
+                  <p className="text-sm text-ink-800 font-medium">{getFullName(spouse)}</p>
                 </div>
               </div>
             ))}
@@ -159,7 +169,7 @@ export function PersonCard({ person, allPersons, onClose, onEdit, onDelete }: Pe
                         key={son.id}
                         className="px-2 py-0.5 bg-white rounded-md text-xs text-ink-700 border border-blue-200"
                       >
-                        {son.name}
+                        {getFullName(son)}
                       </span>
                     ))}
                   </div>
@@ -179,7 +189,7 @@ export function PersonCard({ person, allPersons, onClose, onEdit, onDelete }: Pe
                         key={daughter.id}
                         className="px-2 py-0.5 bg-white rounded-md text-xs text-ink-700 border border-rose-200"
                       >
-                        {daughter.name}
+                        {getFullName(daughter)}
                       </span>
                     ))}
                   </div>

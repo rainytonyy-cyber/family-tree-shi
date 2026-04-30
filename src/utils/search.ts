@@ -1,10 +1,22 @@
 import type { Person, SearchFilters } from '../types';
+import { getFullName } from '../types';
 
 export function searchPersons(persons: Person[], filters: SearchFilters): Person[] {
   return persons.filter(person => {
     if (filters.name) {
       const searchName = filters.name.toLowerCase();
-      if (!person.name.toLowerCase().includes(searchName)) {
+      const fullName = getFullName(person);
+      const previousNames = person.previousNames?.join(' ') || '';
+      
+      // 搜索姓、名、全名、曾用名
+      const nameFields = [
+        person.surname,
+        person.givenName,
+        fullName,
+        previousNames
+      ].join(' ').toLowerCase();
+      
+      if (!nameFields.includes(searchName)) {
         return false;
       }
     }

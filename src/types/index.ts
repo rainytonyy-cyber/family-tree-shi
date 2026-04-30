@@ -1,6 +1,8 @@
 export interface Person {
   id: string;
-  name: string;
+  surname: string;          // 姓
+  givenName: string;        // 名
+  previousNames?: string[]; // 曾用名（支持多个）
   gender: 'male' | 'female' | 'other';
   birthDate?: string;
   deathDate?: string;
@@ -15,6 +17,20 @@ export interface Person {
   spouseIds?: string[]; // 配偶ID列表（支持多配偶）
   generation?: number;
   notes?: string;
+}
+
+// 获取完整姓名
+export function getFullName(person: Person): string {
+  return `${person.surname}${person.givenName}`;
+}
+
+// 获取显示名称（包含曾用名）
+export function getDisplayName(person: Person): string {
+  const fullName = getFullName(person);
+  if (person.previousNames && person.previousNames.length > 0) {
+    return `${fullName}（曾用名：${person.previousNames.join('、')}）`;
+  }
+  return fullName;
 }
 
 export interface Partnership {

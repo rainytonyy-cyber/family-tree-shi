@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Person } from '../../types';
+import { getFullName } from '../../types';
 
 interface AddPersonModalProps {
   persons: Person[];
@@ -8,7 +9,9 @@ interface AddPersonModalProps {
 }
 
 export function AddPersonModal({ persons, onAdd, onClose }: AddPersonModalProps) {
-  const [name, setName] = useState('');
+  const [surname, setSurname] = useState('');
+  const [givenName, setGivenName] = useState('');
+  const [previousNames, setPreviousNames] = useState('');
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [birthDate, setBirthDate] = useState('');
   const [relationType, setRelationType] = useState<'child' | 'spouse' | 'root'>('child');
@@ -33,8 +36,8 @@ export function AddPersonModal({ persons, onAdd, onClose }: AddPersonModalProps)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim()) {
-      alert('请输入姓名');
+    if (!surname.trim() || !givenName.trim()) {
+      alert('请输入姓和名');
       return;
     }
 
@@ -46,7 +49,9 @@ export function AddPersonModal({ persons, onAdd, onClose }: AddPersonModalProps)
 
     const newPerson: Person = {
       id: `S${String(maxId + 1).padStart(3, '0')}`,
-      name: name.trim(),
+      surname: surname.trim(),
+      givenName: givenName.trim(),
+      previousNames: previousNames ? previousNames.split(/[,，、]/).map(s => s.trim()).filter(Boolean) : [],
       gender,
       birthDate: birthDate || undefined,
       occupation: occupation || undefined,
@@ -105,17 +110,46 @@ export function AddPersonModal({ persons, onAdd, onClose }: AddPersonModalProps)
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* 姓名 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-ink-700 mb-1">
+                姓 <span className="text-cinnabar">*</span>
+              </label>
+              <input
+                type="text"
+                value={surname}
+                onChange={e => setSurname(e.target.value)}
+                className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-jade-400/30 focus:border-jade-400"
+                placeholder="姓"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-ink-700 mb-1">
+                名 <span className="text-cinnabar">*</span>
+              </label>
+              <input
+                type="text"
+                value={givenName}
+                onChange={e => setGivenName(e.target.value)}
+                className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-jade-400/30 focus:border-jade-400"
+                placeholder="名"
+                required
+              />
+            </div>
+          </div>
+
+          {/* 曾用名 */}
           <div>
             <label className="block text-sm font-medium text-ink-700 mb-1">
-              姓名 <span className="text-cinnabar">*</span>
+              曾用名
             </label>
             <input
               type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
+              value={previousNames}
+              onChange={e => setPreviousNames(e.target.value)}
               className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-jade-400/30 focus:border-jade-400"
-              placeholder="请输入姓名"
-              required
+              placeholder="多个曾用名用逗号或顿号分隔"
             />
           </div>
 
@@ -218,7 +252,7 @@ export function AddPersonModal({ persons, onAdd, onClose }: AddPersonModalProps)
           {relationType !== 'root' && (
             <div>
               <label className="block text-sm font-medium text-ink-700 mb-1">
-                {relationType === 'child' ? '选择父母' : '选择配偶'}
+                {relationType === 'child' ? '选择父亲' : '选择配偶'}
               </label>
               <select
                 value={relatedPersonId}
@@ -228,7 +262,7 @@ export function AddPersonModal({ persons, onAdd, onClose }: AddPersonModalProps)
                 <option value="">请选择...</option>
                 {relatedPersons.map(p => (
                   <option key={p.id} value={p.id}>
-                    {p.name} ({p.id}) - 第{p.generation || '?'}代
+                    {getFullName(p)} ({p.id}) - 第{p.generation || '?'}代
                   </option>
                 ))}
               </select>

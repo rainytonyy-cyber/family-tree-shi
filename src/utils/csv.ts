@@ -1,7 +1,7 @@
 import type { Person } from '../types';
 
 const CSV_HEADERS: (keyof Person)[] = [
-  'id', 'name', 'gender', 'birthDate', 'deathDate', 'bloodType',
+  'id', 'surname', 'givenName', 'previousNames', 'gender', 'birthDate', 'deathDate', 'bloodType',
   'nationality', 'education', 'occupation', 'address', 'photoPath',
   'fatherId', 'motherId', 'spouseIds', 'generation', 'notes'
 ];
@@ -69,7 +69,9 @@ export function parseCSV(csvText: string): Person[] {
     // 解析为Person对象
     const person: Person = {
       id: record.id || '',
-      name: record.name || '',
+      surname: record.surname || '',
+      givenName: record.givenName || '',
+      previousNames: record.previousNames ? record.previousNames.split(';').filter(Boolean) : [],
       gender: (record.gender as Person['gender']) || 'other',
       birthDate: record.birthDate || undefined,
       deathDate: record.deathDate || undefined,
@@ -97,6 +99,9 @@ export function generateCSV(persons: Person[]): string {
   const dataLines = persons.map(person =>
     CSV_HEADERS.map(header => {
       const value = person[header];
+      if (header === 'previousNames' && Array.isArray(value)) {
+        return escapeCSV(value.join(';'));
+      }
       if (header === 'spouseIds' && Array.isArray(value)) {
         return escapeCSV(value.join(';'));
       }
