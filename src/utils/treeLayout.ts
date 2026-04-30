@@ -19,15 +19,14 @@ export function buildTree(
   persons.forEach(p => personMap.set(p.id, p));
 
   // 找出根节点 - 只允许一个根节点
-  // 根节点是没有父亲也没有母亲、没有配偶的男性
+  // 根节点是没有父亲也没有母亲的男性（可以有配偶）
   const potentialRoots: Person[] = [];
   persons.forEach(p => {
     const hasFather = p.fatherId && personMap.has(p.fatherId);
     const hasMother = p.motherId && personMap.has(p.motherId);
-    const hasSpouse = p.spouseIds && p.spouseIds.length > 0;
     
-    // 如果没有父母在数据中，且是男性，且没有配偶（不是通过婚姻进入家族的），则作为潜在根节点
-    if (!hasFather && !hasMother && p.gender === 'male' && !hasSpouse) {
+    // 如果没有父母在数据中，且是男性，则作为潜在根节点（可以有配偶）
+    if (!hasFather && !hasMother && p.gender === 'male') {
       potentialRoots.push(p);
     }
   });
