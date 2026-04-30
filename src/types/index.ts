@@ -19,6 +19,7 @@ export interface Person {
 export interface TreeNode {
   person: Person;
   spouse?: Person;
+  daughters: Person[];  // 非配偶的女性成员（女儿）
   children: TreeNode[];
   x: number;
   y: number;
@@ -46,4 +47,5 @@ export interface ViewState {
   panY: number;
   direction: TreeDirection;
   showSpouses: boolean;
+  showFemaleMembers: boolean;
 }

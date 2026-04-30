@@ -9,9 +9,10 @@ interface TreeViewProps {
   highlightedIds: string[];
   onSelectPerson: (id: string) => void;
   showSpouses: boolean;
+  showFemaleMembers: boolean;
 }
 
-export function TreeView({ roots, direction, selectedId, highlightedIds, onSelectPerson, showSpouses }: TreeViewProps) {
+export function TreeView({ roots, direction, selectedId, highlightedIds, onSelectPerson, showSpouses, showFemaleMembers }: TreeViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewState, setViewState] = useState<ViewState>({
@@ -19,7 +20,8 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
     panX: 0,
     panY: 0,
     direction,
-    showSpouses
+    showSpouses,
+    showFemaleMembers
   });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -30,8 +32,8 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
   void bounds;
 
   useEffect(() => {
-    setViewState(prev => ({ ...prev, direction, showSpouses }));
-  }, [direction, showSpouses]);
+    setViewState(prev => ({ ...prev, direction, showSpouses, showFemaleMembers }));
+  }, [direction, showSpouses, showFemaleMembers]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -427,6 +429,136 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
         );
       }
 
+      // 女儿节点（如果显示）
+      if (showFemaleMembers && node.daughters && node.daughters.length > 0) {
+        node.daughters.forEach((daughter, index) => {
+          const daughterIsSelected = daughter.id === selectedId;
+          const daughterIsHighlighted = highlightedIds.includes(daughter.id);
+          
+          let daughterFillColor = '#ffffff';
+          let daughterStrokeColor = '#e8b4c8';
+          let daughterTextColor = '#2d2d44';
+          let daughterSubtextColor = '#6b6b8a';
+
+          if (daughterIsSelected) {
+            daughterFillColor = '#2d8a6e';
+            daughterStrokeColor = '#3a9d80';
+            daughterTextColor = '#faf8f5';
+            daughterSubtextColor = '#d5d5e5';
+          } else if (daughterIsHighlighted) {
+            daughterFillColor = '#fffbeb';
+            daughterStrokeColor = '#c9a84c';
+            daughterTextColor = '#1a1a2e';
+            daughterSubtextColor = '#6b6b8a';
+          } else {
+            daughterFillColor = '#fdf2f8';
+            daughterStrokeColor = '#e8b4c8';
+            daughterTextColor = '#2d2d44';
+            daughterSubtextColor = '#6b6b8a';
+          }
+
+          const daughterShadowFilter = daughterIsSelected 
+            ? 'drop-shadow(0 4px 12px rgba(26, 26, 46, 0.15))' 
+            : 'drop-shadow(0 2px 4px rgba(26, 26, 46, 0.05))';
+
+          // 计算女儿节点位置（在主节点下方）
+          const daughterX = node.x + index * (SPOUSE_NODE_WIDTH + 15);
+          const daughterY = node.y + NODE_HEIGHT + 15;
+
+          nodes.push(
+            <g
+              key={daughter.id}
+              transform={`translate(${daughterX}, ${daughterY})`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectPerson(daughter.id);
+              }}
+              className="node-hover"
+              style={{ cursor: 'pointer', filter: daughterShadowFilter }}
+            >
+              {/* 女儿节点背景 */}
+              <rect
+                width={SPOUSE_NODE_WIDTH}
+                height={SPOUSE_NODE_HEIGHT - 10}
+                rx="10"
+                fill={daughterFillColor}
+                stroke={daughterStrokeColor}
+                strokeWidth={daughterIsSelected ? 2.5 : 1.5}
+                className="transition-all duration-200"
+              />
+              
+              {/* 性别指示条 */}
+              <rect
+                x="0"
+                y="8"
+                width="3"
+                height={SPOUSE_NODE_HEIGHT - 26}
+                rx="1.5"
+                fill="#e8689a"
+                opacity={daughterIsSelected ? 0.9 : 0.6}
+              />
+
+              {/* 女儿标签 */}
+              <rect
+                x="8"
+                y="4"
+                width="28"
+                height="14"
+                rx="7"
+                fill="rgba(232, 104, 154, 0.2)"
+              />
+              <text
+                x="22"
+                y="14"
+                textAnchor="middle"
+                fill="#e8689a"
+                fontSize="8"
+                fontWeight="600"
+              >
+                女儿
+              </text>
+
+              {/* 女儿姓名 */}
+              <text
+                x={SPOUSE_NODE_WIDTH / 2 + 5}
+                y={36}
+                textAnchor="middle"
+                fill={daughterTextColor}
+                fontSize="13"
+                fontWeight="500"
+                style={{ fontFamily: "'Noto Serif SC', serif" }}
+              >
+                {daughter.name}
+              </text>
+              
+              {/* 女儿信息 */}
+              <text
+                x={SPOUSE_NODE_WIDTH / 2 + 5}
+                y={50}
+                textAnchor="middle"
+                fill={daughterSubtextColor}
+                fontSize="10"
+                style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+              >
+                {daughter.birthDate ? `${daughter.birthDate}` : ''}
+              </text>
+
+              {/* 选中指示器 */}
+              {daughterIsSelected && (
+                <circle
+                  cx={SPOUSE_NODE_WIDTH - 6}
+                  cy="6"
+                  r="3"
+                  fill="#c9a84c"
+                  stroke="#ffffff"
+                  strokeWidth="1.5"
+                />
+              )}
+            </g>
+          );
+        });
+      }
+
       node.children.forEach(child => visit(child, depth + 1));
     };
 
@@ -484,7 +616,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           −
         </button>
         <button
-          onClick={() => setViewState({ zoom: 1, panX: 0, panY: 0, direction, showSpouses })}
+          onClick={() => setViewState({ zoom: 1, panX: 0, panY: 0, direction, showSpouses, showFemaleMembers })}
           className="
             w-10 h-10 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-ink-900/10
             border border-ink-200 text-ink-500 text-xs

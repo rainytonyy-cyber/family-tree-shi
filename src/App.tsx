@@ -21,6 +21,7 @@ function App() {
   const [showPersonCard, setShowPersonCard] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showSpouses, setShowSpouses] = useState(true);
+  const [showFemaleMembers, setShowFemaleMembers] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -60,8 +61,8 @@ function App() {
   );
 
   const treeRoots = useMemo(
-    () => buildTree(persons, showSpouses),
-    [persons, showSpouses]
+    () => buildTree(persons, showSpouses, showFemaleMembers),
+    [persons, showSpouses, showFemaleMembers]
   );
 
   const stats = useMemo(() => {
@@ -97,6 +98,10 @@ function App() {
           case 's':
             e.preventDefault();
             setShowSpouses(prev => !prev);
+            break;
+          case 'd':
+            e.preventDefault();
+            setShowFemaleMembers(prev => !prev);
             break;
         }
       }
@@ -243,6 +248,20 @@ function App() {
           >
             {showSpouses ? '隐藏配偶' : '显示配偶'}
           </button>
+
+          <button
+            onClick={() => setShowFemaleMembers(!showFemaleMembers)}
+            className={`
+              btn-ink px-4 py-2 rounded-lg text-sm font-medium 
+              transition-all duration-300
+              ${showFemaleMembers
+                ? 'bg-purple-500 text-white shadow-md shadow-purple-500/20'
+                : 'bg-ink-100 text-ink-600 hover:bg-ink-200'
+              }
+            `}
+          >
+            {showFemaleMembers ? '隐藏女性' : '显示女性'}
+          </button>
           
           <button
             onClick={() => setShowStats(!showStats)}
@@ -298,6 +317,7 @@ function App() {
             highlightedIds={highlightedIds}
             onSelectPerson={handleSelectPerson}
             showSpouses={showSpouses}
+            showFemaleMembers={showFemaleMembers}
           />
         )}
 
@@ -408,15 +428,19 @@ function App() {
           <span className="text-ink-300">|</span>
           <span>搜索结果: {searchResults.length}</span>
           <span className="text-ink-300">|</span>
-          <span>配偶显示: {showSpouses ? '开' : '关'}</span>
+          <span>配偶: {showSpouses ? '开' : '关'}</span>
+          <span className="text-ink-300">|</span>
+          <span>女性: {showFemaleMembers ? '开' : '关'}</span>
         </div>
         <div className="flex items-center gap-2 text-ink-400">
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs">Ctrl+F</kbd>
           <span>搜索</span>
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+H</kbd>
-          <span>切换布局</span>
+          <span>布局</span>
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+S</kbd>
           <span>配偶</span>
+          <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+D</kbd>
+          <span>女性</span>
           <kbd className="px-1.5 py-0.5 bg-ink-100 rounded text-xs ml-2">Ctrl+I</kbd>
           <span>统计</span>
         </div>
