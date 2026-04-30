@@ -12,6 +12,19 @@ export function buildTree(persons: Person[], showSpouses: boolean = true): TreeN
   const personMap = new Map<string, Person>();
   persons.forEach(p => personMap.set(p.id, p));
 
+  // 构建配偶关系映射（双向）
+  const spouseMap = new Map<string, Person>();
+  persons.forEach(p => {
+    if (p.spouseId) {
+      const spouse = personMap.get(p.spouseId);
+      if (spouse) {
+        // 双向映射
+        spouseMap.set(p.id, spouse);
+        spouseMap.set(spouse.id, p);
+      }
+    }
+  });
+
   // 只以男性作为父系分支 - 找出所有有后代的男性或没有parentId的男性
   const maleDescendants = new Set<string>();
   
@@ -37,10 +50,8 @@ export function buildTree(persons: Person[], showSpouses: boolean = true): TreeN
   roots.sort((a, b) => (a.generation || 1) - (b.generation || 1));
 
   function buildNode(person: Person): TreeNode {
-    // 找出该人的配偶
-    const spouse = showSpouses && person.spouseId 
-      ? personMap.get(person.spouseId)
-      : undefined;
+    // 找出该人的配偶（通过双向映射）
+    const spouse = showSpouses ? spouseMap.get(person.id) : undefined;
 
     // 找出该人的子代（只包含男性子代作为分支，但也包含女性子代显示）
     const children = persons
