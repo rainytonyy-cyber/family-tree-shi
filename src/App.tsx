@@ -7,6 +7,7 @@ import { TreeView } from './components/TreeView/TreeView';
 import { SearchPanel } from './components/SearchPanel/SearchPanel';
 import { PersonCard } from './components/PersonCard/PersonCard';
 import { DataControls } from './components/DataControls/DataControls';
+import { AddPersonModal } from './components/AddPersonModal/AddPersonModal';
 
 // 史姓家族数据将从CSV文件加载
 const INITIAL_DATA: Person[] = [];
@@ -20,6 +21,7 @@ function App() {
   const [showPersonCard, setShowPersonCard] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showSpouses, setShowSpouses] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
 
@@ -134,22 +136,24 @@ function App() {
   }, []);
 
   const handleAddPerson = useCallback(() => {
-    const maxId = persons.reduce((max, p) => {
-      const num = parseInt(p.id.replace(/\D/g, ''), 10);
-      return isNaN(num) ? max : Math.max(max, num);
-    }, 0);
+    setShowAddModal(true);
+  }, []);
+
+  const handleAddPersonConfirm = useCallback((newPerson: Person) => {
+    // 如果是配偶关系，更新关联人的spouseId
+    if (newPerson.spouseId) {
+      setPersons(prev => prev.map(p => 
+        p.id === newPerson.spouseId 
+          ? { ...p, spouseId: newPerson.id }
+          : p
+      ));
+    }
     
-    const newPerson: Person = {
-      id: `S${String(maxId + 1).padStart(3, '0')}`,
-      name: '新成员',
-      gender: 'male',
-      birthDate: new Date().toISOString().split('T')[0],
-      generation: 1,
-    };
     setPersons(prev => [...prev, newPerson]);
     setSelectedId(newPerson.id);
     setShowPersonCard(true);
-  }, [persons]);
+    setShowAddModal(false);
+  }, []);
 
   const handleEditPerson = useCallback((updated: Person) => {
     setPersons(prev => prev.map(p => p.id === updated.id ? updated : p));
@@ -203,7 +207,7 @@ function App() {
           <DataControls
             persons={persons}
             onImport={handleImport}
-            onAddPerson={handleAddPerson}
+            onAdd={handleAddPerson}
           />
           
           <div className="h-8 w-px bg-ink-200"></div>
@@ -308,12 +312,20 @@ function App() {
             animate-fade-in-scale
             paper-texture
           ">
-            <h3 
-              className="text-sm font-semibold text-ink-800 mb-4 pb-2 border-b border-ink-100"
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
-              史氏家族统计
-            </h3>
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-ink-100">
+              <h3 
+                className="text-sm font-semibold text-ink-800"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                史氏家族统计
+              </h3>
+              <button
+                onClick={() => setShowStats(false)}
+                className="w-6 h-6 rounded-full bg-ink-100 text-ink-500 hover:bg-ink-200 hover:text-ink-700 flex items-center justify-center transition-all"
+              >
+                ✕
+              </button>
+            </div>
             <div className="grid grid-cols-2 gap-3 relative z-10">
               <div className="text-center p-3 bg-ink-50 rounded-lg hover:bg-ink-100 transition-colors">
                 <div className="text-2xl font-bold text-ink-800" style={{ fontFamily: 'var(--font-display)' }}>
@@ -365,6 +377,15 @@ function App() {
             onClose={() => setShowPersonCard(false)}
             onEdit={handleEditPerson}
             onDelete={handleDeletePerson}
+          />
+        )}
+
+        {/* 添加人员模态框 */}
+        {showAddModal && (
+          <AddPersonModal
+            persons={persons}
+            onAdd={handleAddPersonConfirm}
+            onClose={() => setShowAddModal(false)}
           />
         )}
       </main>

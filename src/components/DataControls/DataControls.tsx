@@ -5,10 +5,10 @@ import { parseCSV, generateCSV, downloadCSV } from '../../utils/csv';
 interface DataControlsProps {
   persons: Person[];
   onImport: (persons: Person[]) => void;
-  onAddPerson: () => void;
+  onAdd: () => void;
 }
 
-export function DataControls({ persons, onImport, onAddPerson }: DataControlsProps) {
+export function DataControls({ persons, onImport, onAdd }: DataControlsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,7 +81,7 @@ export function DataControls({ persons, onImport, onAddPerson }: DataControlsPro
       <div className="h-6 w-px bg-ink-200"></div>
 
       <button
-        onClick={onAddPerson}
+        onClick={onAdd}
         className="
           btn-ink px-4 py-2 
           bg-gold-500 text-white rounded-lg text-sm font-medium
