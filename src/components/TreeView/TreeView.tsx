@@ -137,6 +137,9 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
             />
           );
         });
+
+        // 递归绘制子节点的连线
+        node.children.forEach(child => visit(child, depth + 1));
       }
 
       // 绘制到配偶的连线（如果显示配偶）
