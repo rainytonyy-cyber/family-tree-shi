@@ -9,13 +9,14 @@ interface TreeViewProps {
   selectedId?: string;
   highlightedIds: string[];
   onSelectPerson: (id: string) => void;
+  onToggleExpand: (id: string) => void;
   showSpouses: boolean;
   showDaughters: boolean;
   showSonsInLaw: boolean;
   showCousins: boolean;
 }
 
-export function TreeView({ roots, direction, selectedId, highlightedIds, onSelectPerson, showSpouses, showDaughters, showSonsInLaw, showCousins }: TreeViewProps) {
+export function TreeView({ roots, direction, selectedId, highlightedIds, onSelectPerson, onToggleExpand, showSpouses, showDaughters, showSonsInLaw, showCousins }: TreeViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewState, setViewState] = useState<ViewState>({
@@ -383,6 +384,37 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
               stroke="#ffffff"
               strokeWidth="1.5"
             />
+          )}
+
+          {/* 展开/收起按钮 */}
+          {node.children.length > 0 && (
+            <g
+              transform={`translate(${NODE_WIDTH - 12}, ${NODE_HEIGHT - 12})`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleExpand(node.person.id);
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              <circle
+                cx="0"
+                cy="0"
+                r="8"
+                fill={isSelected ? 'rgba(255,255,255,0.3)' : 'rgba(26, 26, 46, 0.1)'}
+                stroke={isSelected ? '#ffffff' : '#94a3b8'}
+                strokeWidth="1"
+              />
+              <text
+                x="0"
+                y="4"
+                textAnchor="middle"
+                fill={isSelected ? '#ffffff' : '#64748b'}
+                fontSize="12"
+                fontWeight="bold"
+              >
+                {node.isExpanded ? '−' : '+'}
+              </text>
+            </g>
           )}
 
           {/* 配偶连接指示器 */}

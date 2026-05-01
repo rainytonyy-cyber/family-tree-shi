@@ -32,7 +32,8 @@ export function buildTree(
   showSpouses: boolean = true, 
   showDaughters: boolean = true, 
   showSonsInLaw: boolean = true,
-  showCousins: boolean = false
+  showCousins: boolean = false,
+  collapsedNodes: Set<string> = new Set()
 ): TreeNode[] {
   const personMap = new Map<string, Person>();
   persons.forEach(p => personMap.set(p.id, p));
@@ -55,6 +56,8 @@ export function buildTree(
   const roots: Person[] = potentialRoots.length > 0 ? [potentialRoots[0]] : [];
 
   function buildNode(person: Person): TreeNode {
+    const isExpanded = !collapsedNodes.has(person.id);
+    
     // 找出该人的所有配偶（包括儿子的配偶，受showSpouses控制）
     const spouses = showSpouses 
       ? (person.spouseIds || [])
@@ -81,15 +84,17 @@ export function buildTree(
       ? persons.filter(p => daughters.some(d => d.id === p.fatherId || d.id === p.motherId))
       : [];
 
-    // 找出该人的儿子作为主线分支
-    const children = persons
-      .filter(p => p.fatherId === person.id && p.gender === 'male')
-      .sort((a, b) => {
-        const dateA = a.birthDate || '';
-        const dateB = b.birthDate || '';
-        return dateA.localeCompare(dateB);
-      })
-      .map(buildNode);
+    // 找出该人的儿子作为主线分支（如果展开的话）
+    const children = isExpanded
+      ? persons
+          .filter(p => p.fatherId === person.id && p.gender === 'male')
+          .sort((a, b) => {
+            const dateA = a.birthDate || '';
+            const dateB = b.birthDate || '';
+            return dateA.localeCompare(dateB);
+          })
+          .map(buildNode)
+      : [];
 
     return { 
       person, 
@@ -97,7 +102,8 @@ export function buildTree(
       daughters,
       sonsInLaw,
       cousins,
-      children, 
+      children,
+      isExpanded,
       x: 0, 
       y: 0,
       generation: person.generation || 1

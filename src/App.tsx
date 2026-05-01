@@ -27,6 +27,7 @@ function App() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set()); // 收起的节点
 
   // 加载史姓家族数据
   useEffect(() => {
@@ -63,9 +64,22 @@ function App() {
   );
 
   const treeRoots = useMemo(
-    () => buildTree(persons, showSpouses, showDaughters, showSonsInLaw, showCousins),
-    [persons, showSpouses, showDaughters, showSonsInLaw, showCousins]
+    () => buildTree(persons, showSpouses, showDaughters, showSonsInLaw, showCousins, collapsedNodes),
+    [persons, showSpouses, showDaughters, showSonsInLaw, showCousins, collapsedNodes]
   );
+
+  // 切换节点展开/收起状态
+  const toggleExpand = useCallback((nodeId: string) => {
+    setCollapsedNodes(prev => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) {
+        next.delete(nodeId); // 展开
+      } else {
+        next.add(nodeId); // 收起
+      }
+      return next;
+    });
+  }, []);
 
   const stats = useMemo(() => {
     const maleCount = persons.filter(p => p.gender === 'male').length;
@@ -369,6 +383,7 @@ function App() {
             selectedId={selectedId}
             highlightedIds={highlightedIds}
             onSelectPerson={handleSelectPerson}
+            onToggleExpand={toggleExpand}
             showSpouses={showSpouses}
             showDaughters={showDaughters}
             showSonsInLaw={showSonsInLaw}
