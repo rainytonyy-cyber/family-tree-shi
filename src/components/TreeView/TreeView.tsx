@@ -75,53 +75,69 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
     const connections: React.ReactNode[] = [];
 
     const visit = (node: TreeNode, depth: number = 0) => {
-      // 绘制到子代的连线
-      node.children.forEach((child) => {
-        const startX = node.x + NODE_WIDTH / 2;
-        const startY = node.y + NODE_HEIGHT;
-        const endX = child.x + NODE_WIDTH / 2;
-        const endY = child.y;
-
+      // 绘制到子代的连线 - 正交样式
+      if (node.children.length > 0) {
         // 水墨渐变色 - 随深度变化
         const opacity = Math.max(0.3, 1 - depth * 0.1);
         const strokeWidth = Math.max(1.5, 2.5 - depth * 0.2);
+        const strokeColor = `rgba(26, 26, 46, ${opacity})`;
 
-        if (direction === 'horizontal') {
-          const midX = (startX + endX) / 2;
+        // 父节点底部中间
+        const parentX = node.x + NODE_WIDTH / 2;
+        const parentY = node.y + NODE_HEIGHT;
+
+        // 子节点顶部中间
+        const childPositions = node.children.map(child => ({
+          x: child.x + NODE_WIDTH / 2,
+          y: child.y
+        }));
+
+        // 计算水平线的Y位置（父节点和子节点中间）
+        const midY = parentY + (childPositions[0].y - parentY) / 2;
+
+        // 1. 父节点底部向下画短线到midY
+        connections.push(
+          <path
+            key={`${node.person.id}-down`}
+            d={`M ${parentX} ${parentY} L ${parentX} ${midY}`}
+            fill="none"
+            stroke={strokeColor}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+          />
+        );
+
+        // 2. 画水平线连接所有子节点
+        const minX = Math.min(parentX, ...childPositions.map(p => p.x));
+        const maxX = Math.max(parentX, ...childPositions.map(p => p.x));
+        
+        if (childPositions.length > 1 || childPositions[0].x !== parentX) {
           connections.push(
             <path
-              key={`${node.person.id}-${child.person.id}`}
-              d={`M ${node.x + NODE_WIDTH} ${node.y + NODE_HEIGHT / 2}
-                  C ${midX} ${node.y + NODE_HEIGHT / 2},
-                    ${midX} ${child.y + NODE_HEIGHT / 2},
-                    ${child.x} ${child.y + NODE_HEIGHT / 2}`}
+              key={`${node.person.id}-hline`}
+              d={`M ${minX} ${midY} L ${maxX} ${midY}`}
               fill="none"
-              stroke={`rgba(26, 26, 46, ${opacity})`}
+              stroke={strokeColor}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
-              className="transition-opacity duration-300"
-            />
-          );
-        } else {
-          const midY = (startY + endY) / 2;
-          connections.push(
-            <path
-              key={`${node.person.id}-${child.person.id}`}
-              d={`M ${startX} ${startY}
-                  C ${startX} ${midY},
-                    ${endX} ${midY},
-                    ${endX} ${endY}`}
-              fill="none"
-              stroke={`rgba(26, 26, 46, ${opacity})`}
-              strokeWidth={strokeWidth}
-              strokeLinecap="round"
-              className="transition-opacity duration-300"
             />
           );
         }
 
-        visit(child, depth + 1);
-      });
+        // 3. 从水平线向下画线到每个子节点
+        childPositions.forEach((childPos, index) => {
+          connections.push(
+            <path
+              key={`${node.person.id}-${node.children[index].person.id}`}
+              d={`M ${childPos.x} ${midY} L ${childPos.x} ${childPos.y}`}
+              fill="none"
+              stroke={strokeColor}
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+            />
+          );
+        });
+      }
 
       // 绘制到配偶的连线（如果显示配偶）
       if (showSpouses && node.spouses && node.spouses.length > 0) {
