@@ -170,7 +170,7 @@ function getSubtreeHeight(node: TreeNode): number {
   return Math.max(NODE_HEIGHT, childrenHeight);
 }
 
-function layoutVertical(node: TreeNode, x: number, y: number): void {
+function layoutVertical(node: TreeNode, x: number, y: number, _depth: number = 0): void {
   node.x = x;
   node.y = y;
 
@@ -180,19 +180,30 @@ function layoutVertical(node: TreeNode, x: number, y: number): void {
     ? node.spouses.length * (SPOUSE_NODE_WIDTH + 10) 
     : 0;
 
-  // 计算子节点总高度
-  const totalHeight = node.children.reduce(
-    (sum, child) => sum + getSubtreeHeight(child) + BASE_VERTICAL_GAP,
-    -BASE_VERTICAL_GAP
-  );
+  // 子节点的X坐标：父节点右侧 + 间距 + 配偶宽度
+  const childX = x + NODE_WIDTH + HORIZONTAL_GAP + spouseWidth;
 
-  // 从父节点中心开始，向上偏移一半总高度
-  let childY = y - totalHeight / 2 + NODE_HEIGHT / 2;
+  // 如果只有一个子节点，直接放在父节点下方
+  if (node.children.length === 1) {
+    layoutVertical(node.children[0], childX, y, _depth + 1);
+    return;
+  }
 
-  node.children.forEach((child) => {
-    const childHeight = getSubtreeHeight(child);
-    layoutVertical(child, x + NODE_WIDTH + HORIZONTAL_GAP + spouseWidth, childY);
-    childY += childHeight + BASE_VERTICAL_GAP;
+  // 多个子节点：垂直排列，每个子节点占据自己的空间
+  // 计算每个子节点的起始Y坐标
+  let currentY = y;
+  
+  node.children.forEach((child, index) => {
+    // 第一个子节点与父节点对齐，后续子节点累加高度
+    if (index === 0) {
+      layoutVertical(child, childX, currentY, _depth + 1);
+    } else {
+      // 计算上一个子树的实际高度
+      const prevChild = node.children[index - 1];
+      const prevHeight = getSubtreeHeight(prevChild);
+      currentY += prevHeight + BASE_VERTICAL_GAP;
+      layoutVertical(child, childX, currentY, _depth + 1);
+    }
   });
 }
 
