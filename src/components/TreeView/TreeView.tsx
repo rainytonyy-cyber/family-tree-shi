@@ -75,68 +75,122 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
     const connections: React.ReactNode[] = [];
 
     const visit = (node: TreeNode, depth: number = 0) => {
-      // 绘制到子代的连线 - 正交样式
+      // 绘制到子代的连线
       if (node.children.length > 0) {
         // 水墨渐变色 - 随深度变化
         const opacity = Math.max(0.3, 1 - depth * 0.1);
         const strokeWidth = Math.max(1.5, 2.5 - depth * 0.2);
         const strokeColor = `rgba(26, 26, 46, ${opacity})`;
 
-        // 父节点底部中间
-        const parentX = node.x + NODE_WIDTH / 2;
-        const parentY = node.y + NODE_HEIGHT;
+        if (direction === 'horizontal') {
+          // 水平布局：正交样式连线
+          const parentX = node.x + NODE_WIDTH / 2;
+          const parentY = node.y + NODE_HEIGHT;
 
-        // 子节点顶部中间
-        const childPositions = node.children.map(child => ({
-          x: child.x + NODE_WIDTH / 2,
-          y: child.y
-        }));
+          const childPositions = node.children.map(child => ({
+            x: child.x + NODE_WIDTH / 2,
+            y: child.y
+          }));
 
-        // 计算水平线的Y位置（父节点和子节点中间）
-        const midY = parentY + (childPositions[0].y - parentY) / 2;
+          const midY = parentY + (childPositions[0].y - parentY) / 2;
 
-        // 1. 父节点底部向下画短线到midY
-        connections.push(
-          <path
-            key={`${node.person.id}-down`}
-            d={`M ${parentX} ${parentY} L ${parentX} ${midY}`}
-            fill="none"
-            stroke={strokeColor}
-            strokeWidth={strokeWidth}
-            strokeLinecap="round"
-          />
-        );
-
-        // 2. 画水平线连接所有子节点
-        const minX = Math.min(parentX, ...childPositions.map(p => p.x));
-        const maxX = Math.max(parentX, ...childPositions.map(p => p.x));
-        
-        if (childPositions.length > 1 || childPositions[0].x !== parentX) {
+          // 1. 父节点向下画短线
           connections.push(
             <path
-              key={`${node.person.id}-hline`}
-              d={`M ${minX} ${midY} L ${maxX} ${midY}`}
+              key={`${node.person.id}-down`}
+              d={`M ${parentX} ${parentY} L ${parentX} ${midY}`}
               fill="none"
               stroke={strokeColor}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
             />
           );
+
+          // 2. 画水平线
+          const minX = Math.min(parentX, ...childPositions.map(p => p.x));
+          const maxX = Math.max(parentX, ...childPositions.map(p => p.x));
+          
+          if (childPositions.length > 1 || childPositions[0].x !== parentX) {
+            connections.push(
+              <path
+                key={`${node.person.id}-hline`}
+                d={`M ${minX} ${midY} L ${maxX} ${midY}`}
+                fill="none"
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+                strokeLinecap="round"
+              />
+            );
+          }
+
+          // 3. 画垂直线到子节点
+          childPositions.forEach((childPos, index) => {
+            connections.push(
+              <path
+                key={`${node.person.id}-${node.children[index].person.id}`}
+                d={`M ${childPos.x} ${midY} L ${childPos.x} ${childPos.y}`}
+                fill="none"
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+                strokeLinecap="round"
+              />
+            );
+          });
+        } else {
+          // 垂直布局：从父节点右侧到子节点左侧
+          const parentX = node.x + NODE_WIDTH;
+          const parentY = node.y + NODE_HEIGHT / 2;
+
+          const childPositions = node.children.map(child => ({
+            x: child.x,
+            y: child.y + NODE_HEIGHT / 2
+          }));
+
+          const midX = parentX + (childPositions[0].x - parentX) / 2;
+
+          // 1. 父节点向右画短线
+          connections.push(
+            <path
+              key={`${node.person.id}-right`}
+              d={`M ${parentX} ${parentY} L ${midX} ${parentY}`}
+              fill="none"
+              stroke={strokeColor}
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+            />
+          );
+
+          // 2. 画垂直线
+          const minY = Math.min(parentY, ...childPositions.map(p => p.y));
+          const maxY = Math.max(parentY, ...childPositions.map(p => p.y));
+          
+          if (childPositions.length > 1 || childPositions[0].y !== parentY) {
+            connections.push(
+              <path
+                key={`${node.person.id}-vline`}
+                d={`M ${midX} ${minY} L ${midX} ${maxY}`}
+                fill="none"
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+                strokeLinecap="round"
+              />
+            );
+          }
+
+          // 3. 画水平线到子节点
+          childPositions.forEach((childPos, index) => {
+            connections.push(
+              <path
+                key={`${node.person.id}-${node.children[index].person.id}`}
+                d={`M ${midX} ${childPos.y} L ${childPos.x} ${childPos.y}`}
+                fill="none"
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+                strokeLinecap="round"
+              />
+            );
+          });
         }
-
-        // 3. 从水平线向下画线到每个子节点
-        childPositions.forEach((childPos, index) => {
-          connections.push(
-            <path
-              key={`${node.person.id}-${node.children[index].person.id}`}
-              d={`M ${childPos.x} ${midY} L ${childPos.x} ${childPos.y}`}
-              fill="none"
-              stroke={strokeColor}
-              strokeWidth={strokeWidth}
-              strokeLinecap="round"
-            />
-          );
-        });
 
         // 递归绘制子节点的连线
         node.children.forEach(child => visit(child, depth + 1));

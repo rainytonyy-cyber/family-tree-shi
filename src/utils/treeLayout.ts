@@ -157,6 +157,19 @@ function layoutHorizontal(
   });
 }
 
+function getSubtreeHeight(node: TreeNode): number {
+  if (node.children.length === 0) {
+    return NODE_HEIGHT;
+  }
+
+  const childrenHeight = node.children.reduce(
+    (sum, child) => sum + getSubtreeHeight(child) + BASE_VERTICAL_GAP,
+    -BASE_VERTICAL_GAP
+  );
+
+  return Math.max(NODE_HEIGHT, childrenHeight);
+}
+
 function layoutVertical(node: TreeNode, x: number, y: number): void {
   node.x = x;
   node.y = y;
@@ -167,8 +180,19 @@ function layoutVertical(node: TreeNode, x: number, y: number): void {
     ? node.spouses.length * (SPOUSE_NODE_WIDTH + 10) 
     : 0;
 
-  node.children.forEach((child, index) => {
-    layoutVertical(child, x + NODE_WIDTH + HORIZONTAL_GAP + spouseWidth, y + index * (NODE_HEIGHT + BASE_VERTICAL_GAP));
+  // 计算子节点总高度
+  const totalHeight = node.children.reduce(
+    (sum, child) => sum + getSubtreeHeight(child) + BASE_VERTICAL_GAP,
+    -BASE_VERTICAL_GAP
+  );
+
+  // 从父节点中心开始，向上偏移一半总高度
+  let childY = y - totalHeight / 2 + NODE_HEIGHT / 2;
+
+  node.children.forEach((child) => {
+    const childHeight = getSubtreeHeight(child);
+    layoutVertical(child, x + NODE_WIDTH + HORIZONTAL_GAP + spouseWidth, childY);
+    childY += childHeight + BASE_VERTICAL_GAP;
   });
 }
 
