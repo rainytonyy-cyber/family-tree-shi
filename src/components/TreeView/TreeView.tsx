@@ -386,10 +386,10 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
             />
           )}
 
-          {/* 展开/收起按钮 */}
+          {/* 展开/收起按钮 - 卡片正下方居中 */}
           {node.hasChildren && (
             <g
-              transform={`translate(${NODE_WIDTH - 12}, ${NODE_HEIGHT - 12})`}
+              transform={`translate(${NODE_WIDTH / 2}, ${NODE_HEIGHT + 12})`}
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleExpand(node.person.id);
@@ -399,17 +399,18 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
               <circle
                 cx="0"
                 cy="0"
-                r="8"
-                fill={isSelected ? 'rgba(255,255,255,0.3)' : 'rgba(26, 26, 46, 0.1)'}
-                stroke={isSelected ? '#ffffff' : '#94a3b8'}
-                strokeWidth="1"
+                r="10"
+                fill={isSelected ? '#3b82f6' : '#ffffff'}
+                stroke={isSelected ? '#1d4ed8' : '#94a3b8'}
+                strokeWidth="1.5"
+                className="transition-all duration-200"
               />
               <text
                 x="0"
                 y="4"
                 textAnchor="middle"
                 fill={isSelected ? '#ffffff' : '#64748b'}
-                fontSize="12"
+                fontSize="14"
                 fontWeight="bold"
               >
                 {node.isExpanded ? '−' : '+'}
