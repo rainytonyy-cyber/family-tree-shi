@@ -330,7 +330,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
 
           {/* 姓名 */}
           <text
-            x={NODE_WIDTH / 2 + 10}
+            x={NODE_WIDTH / 2}
             y={38}
             textAnchor="middle"
             fill={textColor}
@@ -343,7 +343,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           
           {/* 信息行 */}
           <text
-            x={NODE_WIDTH / 2 + 10}
+            x={NODE_WIDTH / 2}
             y={58}
             textAnchor="middle"
             fill={subtextColor}
@@ -355,7 +355,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
 
           {/* 职业标签 */}
           {node.person.occupation && (
-            <g transform={`translate(${NODE_WIDTH / 2 - 10}, 64)`}>
+            <g transform={`translate(${NODE_WIDTH / 2 - 20}, 64)`}>
               <rect
                 width="40"
                 height="14"
@@ -387,7 +387,7 @@ export function TreeView({ roots, direction, selectedId, highlightedIds, onSelec
           )}
 
           {/* 展开/收起按钮 */}
-          {node.children.length > 0 && (
+          {node.hasChildren && (
             <g
               transform={`translate(${NODE_WIDTH - 12}, ${NODE_HEIGHT - 12})`}
               onClick={(e) => {

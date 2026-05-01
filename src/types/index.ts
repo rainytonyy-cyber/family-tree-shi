@@ -50,6 +50,7 @@ export interface TreeNode {
   sonsInLaw: Person[];     // 女婿（女儿的配偶）
   cousins: Person[];       // 表亲（女儿的孩子）
   children: TreeNode[];    // 主线儿子（作为子节点）
+  hasChildren: boolean;    // 是否有子节点（不考虑展开状态）
   isExpanded: boolean;     // 是否展开子节点
   x: number;
   y: number;

@@ -85,16 +85,16 @@ export function buildTree(
       : [];
 
     // 找出该人的儿子作为主线分支（如果展开的话）
-    const children = isExpanded
-      ? persons
-          .filter(p => p.fatherId === person.id && p.gender === 'male')
-          .sort((a, b) => {
-            const dateA = a.birthDate || '';
-            const dateB = b.birthDate || '';
-            return dateA.localeCompare(dateB);
-          })
-          .map(buildNode)
-      : [];
+    const allChildren = persons
+      .filter(p => p.fatherId === person.id && p.gender === 'male')
+      .sort((a, b) => {
+        const dateA = a.birthDate || '';
+        const dateB = b.birthDate || '';
+        return dateA.localeCompare(dateB);
+      });
+    
+    const hasChildren = allChildren.length > 0;
+    const children = isExpanded ? allChildren.map(buildNode) : [];
 
     return { 
       person, 
@@ -103,6 +103,7 @@ export function buildTree(
       sonsInLaw,
       cousins,
       children,
+      hasChildren,
       isExpanded,
       x: 0, 
       y: 0,
